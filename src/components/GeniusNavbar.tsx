@@ -15,7 +15,7 @@ function GeniusNavbar({ auth }) {
 
   const menuItems = [
     { path: "/", command: goHome, name: "Home" },
-    { path: "/apps", command: goApps, name: "My Applications" },
+    { path: "/apps", command: goApps, name: "My CV Apps" },
     { path: "/scratch", command: goScratch, name: "Start my CV from Scratch" },
     { path: "/craft", command: goCraft, name: "Craft my CV" },
     { path: "/optimize", command: goOptimize, name: "Optimize my CV" },

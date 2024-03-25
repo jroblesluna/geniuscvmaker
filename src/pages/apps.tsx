@@ -5,10 +5,11 @@ function Apps({ auth }) {
 	const router = useRouter(); // Initialize Next.js router
 
 	const { logout } = auth;
-	function goScratch() {
-		router.push('/scratch')
-	}
-
+	function goScratch() { router.push('/scratch') }
+	function goCraft() { router.push('/craft') }
+	function goOptimize() { router.push('/optimize') }
+	function goSpotlight() { router.push('/spotlight') }
+  
 	return (
 		<>
 			<div className="h-screen flex flex-col gap-4 justify-start mt-[1.25vw] items-center">
@@ -38,7 +39,7 @@ function Apps({ auth }) {
 							</div>
 							<div className="absolute w-full h-full flex flex-col justify-between px-[5%] py-[5%] sm:px-[10%] sm:py-[5%] md:px-[10%] md:py-[5%] lg:px-[10%] lg:py-[5%] xl:px-[10%] xl:py-[5%] text-[2.5vw] sm:text-[1.25vw] md:text-[1.25vw] lg:text-[1.25vw] xl:text-[1.25vw] shadow-[0_8px_14px_0_rgba(0,0,0,0.2)] bg-[#FF4F22] text-white rounded-xl [transform:rotateY(180deg)] [backface-visibility:hidden]">
 								<p>ANSWER FEW QUESTIONS ABOUT YOUR SKILLS, EXPERIENCE, AND OTHER RELEVANT INFORMATION. YOU CAN DETAIL AS MUCH AS YOU WANT. OUR AI WILL CRAFT A MASTERPIECE CV, TAILORED TO YOUR UNIQUE PROFILE.</p>
-								<button className='appButton rounded-lg border border-white h-[5vw] sm:h-[3vw] md:h-[3vw] lg:h-[3vw] xl:h-[3vw]'>Craft</button>
+								<button onClick={goCraft} className='appButton rounded-lg border border-white h-[5vw] sm:h-[3vw] md:h-[3vw] lg:h-[3vw] xl:h-[3vw]'>Craft</button>
 							</div>
 						</div>
 					</div>
@@ -52,7 +53,7 @@ function Apps({ auth }) {
 							</div>
 							<div className="absolute w-full h-full flex flex-col justify-between px-[5%] py-[5%] sm:px-[10%] sm:py-[5%] md:px-[10%] md:py-[5%] lg:px-[10%] lg:py-[5%] xl:px-[10%] xl:py-[5%] text-[2.5vw] sm:text-[1.25vw] md:text-[1.25vw] lg:text-[1.25vw] xl:text-[1.25vw] shadow-[0_8px_14px_0_rgba(0,0,0,0.2)] bg-[#DCC80F] text-gray-900 rounded-xl [transform:rotateY(180deg)] [backface-visibility:hidden]">
 								<p>LET'S REVIEW YOUR CURRENT CV. YOU CAN UPLOAD THAT DOC OR PDF FILE YOU HAVE! OUR AI CV GENIUS WILL DEEPLY ANALYZE YOUR CV AND GIVE YOU PROFESSIONAL ADVICE TO ADJUST IT IN ORDER TO MEET YOUR GOALS.</p>
-								<button className='appButton rounded-lg border border-white h-[5vw] sm:h-[3vw] md:h-[3vw] lg:h-[3vw] xl:h-[3vw]'>Optimize</button>
+								<button onClick={goOptimize} className='appButton rounded-lg border border-white h-[5vw] sm:h-[3vw] md:h-[3vw] lg:h-[3vw] xl:h-[3vw]'>Optimize</button>
 							</div>
 						</div>
 					</div>
@@ -66,7 +67,7 @@ function Apps({ auth }) {
 							</div>
 							<div className="absolute w-full h-full flex flex-col justify-between px-[5%] py-[5%] sm:px-[10%] sm:py-[5%] md:px-[10%] md:py-[5%] lg:px-[10%] lg:py-[5%] xl:px-[10%] xl:py-[5%] text-[2.5vw] sm:text-[1.25vw] md:text-[1.25vw] lg:text-[1.25vw] xl:text-[1.25vw] shadow-[0_8px_14px_0_rgba(0,0,0,0.2)] bg-[#dcd8cc] text-gray-900 rounded-xl [transform:rotateY(180deg)] [backface-visibility:hidden]">
 								<p>GET THAT JOB OR COLLEGE ADMISSION! COPY AND PASTE THE REQUIREMENTS. OUR GENIUS WILL PREPARE AND ENHANCE YOUR CV AS THE PERFECT APPLICANT FOR THE SPOT. IT WILL ALSO CREATE AN IMPRESSIVE COVER LETTER.</p>
-								<button className='appButton rounded-lg border border-white h-[5vw] sm:h-[3vw] md:h-[3vw] lg:h-[3vw] xl:h-[3vw]'>Spotlight</button>
+								<button onClick={goSpotlight} className='appButton rounded-lg border border-white h-[5vw] sm:h-[3vw] md:h-[3vw] lg:h-[3vw] xl:h-[3vw]'>Spotlight</button>
 							</div>
 						</div>
 					</div>
