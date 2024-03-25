@@ -6,6 +6,6 @@
 #git remote add geniuscvmaker https://github.com/jroblesluna/geniuscvmaker
 git add .
 git commit -m 'NEW'
-git push --force origin main
+git push --force geniuscvmaker main
 #npm install
 #npm build
