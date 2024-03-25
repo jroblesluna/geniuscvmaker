@@ -95,7 +95,7 @@ function GeniusNavbar({ auth }) {
             <div className='flex flex-col gap-1 items-end'>
               <div className='flex flex-row'>
                 <div className="w-4 h-6 px-0 mx-1">
-                  <SvgLogo/>
+                  <SvgLogo fillColor="#FF4F22" />
                 </div>
                 <div className="">CV Maker</div>
               </div>
