@@ -1,0 +1,113 @@
+import React from 'react'
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link, Button, menuItem } from "@nextui-org/react";
+import { useRouter } from 'next/router'; // Import Next.js router
+import SvgLogo from "./svgLogo";
+import SvgHome from './svgHome';
+import SvgApps from './svgApps';
+import SvgList from './svgList';
+import SvgLogout from './svgLogout';
+import SvgWallet from './svgWallet';
+
+function GeniusNavbar({ auth }) {
+  const router = useRouter(); // Initialize Next.js router
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const { logout } = auth;
+
+  const menuItems = [
+    { path: "/", command: goHome, name: "Home" },
+    { path: "/apps", command: goApps, name: "My Applications" },
+    { path: "/scratch", command: goScratch, name: "Start my CV from Scratch" },
+    { path: "/craft", command: goCraft, name: "Craft my CV" },
+    { path: "/optimize", command: goOptimize, name: "Optimize my CV" },
+    { path: "/spotlight", command: goSpotlight, name: "Spotlight my CV" },
+    { path: "/list", command: goList, name: "My CV's List" },
+    { path: "/buy", command: goBuy, name: "Buy Tokens" },
+    { path: "/support", command: goSupport, name: "Help & Support" },
+    { path: "/logout", command: logout, name: "Log Out" },
+  ];
+
+  function goHome() { router.push('/') }
+  function goApps() { router.push('/apps') }
+  function goScratch() { router.push('/scratch') }
+  function goCraft() { router.push('/craft') }
+  function goOptimize() { router.push('/optimize') }
+  function goSpotlight() { router.push('/spotlight') }
+  function goList() { router.push('/list') }
+  function goBuy() { router.push('/buy') }
+  function goSupport() { router.push('/support') }
+
+  return (
+    <>
+      <Navbar onMenuOpenChange={setIsMenuOpen} className='bg-gray-200' maxWidth='full'>
+        <NavbarContent className='justify-start'>
+          <NavbarMenuToggle
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+            style={{ color: "#FF4F22" }} />
+          <NavbarMenu>
+            {menuItems.map((item, index) => (
+              <NavbarMenuItem key={`${item.path}-${index}`}>
+                <div
+                  className={`w-fit cursor-pointer topic-title-${(router.pathname === item.path) ? "blue" : (index === menuItems.length - 1) ? "orange" : "darkgray"}`}
+                  onClick={item.command}
+                >
+                  {item.name}
+                </div>
+              </NavbarMenuItem>
+            ))}
+          </NavbarMenu>
+        </NavbarContent>
+        <NavbarContent className="justify-center gap-[2vw]">
+          <NavbarItem>
+            <button onClick={goHome}>
+              <div className='flex flex-col items-center'>
+                <div><SvgHome /></div>
+                <div className='text-[#FF4F22] font-medium'>Home</div>
+              </div>
+            </button>
+          </NavbarItem>
+          <NavbarItem>
+            <button onClick={goApps}>
+              <div className='flex flex-col items-center'>
+                <div><SvgApps /></div>
+                <div className='text-[#FF4F22] font-medium'>Apps</div>
+              </div>
+            </button>
+          </NavbarItem>
+          <NavbarItem>
+            <button onClick={goList}>
+              <div className='flex flex-col items-center'>
+                <div><SvgList /></div>
+                <div className='text-[#FF4F22] font-medium'>CV's</div>
+              </div>
+            </button>
+          </NavbarItem>
+          <NavbarItem>
+            <button onClick={logout}>
+              <div className='flex flex-col items-center'>
+                <div><SvgLogout /></div>
+                <div className='text-[#FF4F22] font-medium'>Exit</div>
+              </div>
+            </button>
+          </NavbarItem>
+        </NavbarContent>
+        <NavbarContent className='justify-end'>
+          <NavbarBrand className="flex flex-col justify-center items-end h-full">
+            <div className='flex flex-col gap-1 items-end'>
+              <div className='flex flex-row'>
+                <SvgLogo />
+                <div className="">CV Maker</div>
+              </div>
+              <div className='rounded-md px-2 py-0.5 appBlackOnCitrine flex flex-row'>
+                <SvgWallet />
+                <div>10000</div>
+              </div>
+            </div>
+          </NavbarBrand>
+        </NavbarContent>
+
+      </Navbar>
+    </>
+  )
+}
+
+export default GeniusNavbar;
