@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../hook/auth";
 import AuthService from "../service/AuthService";
+import SvgLogo from "../components/svgLogo";
+import SvgLoading from "../components/svgLoading";
+import LoadingScreen from "../components/loadingScreen";
 
 export default function AuthStateChanged({ children }) {
 	const { setUser } = useAuth();
@@ -15,7 +18,9 @@ export default function AuthStateChanged({ children }) {
 	}, []);
 
 	if (loading) {
-		return <h1>Loading...</h1>;
+		return (
+			<LoadingScreen />
+		);
 	}
 
 	return children;

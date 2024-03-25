@@ -326,3 +326,13 @@ body {
   color: #1b1f24;
   font-weight: bold;
 }
+
+.bg-genius-orange {
+  background-color: #FF4F22;
+}
+
+.loading-background {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+}

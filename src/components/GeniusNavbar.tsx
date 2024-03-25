@@ -94,7 +94,9 @@ function GeniusNavbar({ auth }) {
           <NavbarBrand className="flex flex-col justify-center items-end h-full">
             <div className='flex flex-col gap-1 items-end'>
               <div className='flex flex-row'>
-                <SvgLogo />
+                <div className="w-4 h-6 px-0 mx-1">
+                  <SvgLogo/>
+                </div>
                 <div className="">CV Maker</div>
               </div>
               <div className='rounded-md px-2 py-0.5 appBlackOnCitrine flex flex-row'>
