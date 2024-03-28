@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import useAuth from "../hook/auth";
 import AuthService from "../service/AuthService";
-import SvgLogo from "../components/svgLogo";
-import SvgLoading from "../components/svgLoading";
 import LoadingScreen from "../components/loadingScreen";
 
 export default function AuthStateChanged({ children }) {

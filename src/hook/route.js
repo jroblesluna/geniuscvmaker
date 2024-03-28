@@ -24,7 +24,7 @@ export function withProtected(Component) {
 			return (
 				<>
 					<GeniusNavbar auth={auth} />
-					<Toaster position="bottom-right" toastOptions={{ duration: 5000 }} />
+					<Toaster position="bottom-center" toastOptions={{ duration: 5000 }} />
 					<Component auth={auth} protected={true} {...props} />
 				</>
 			);

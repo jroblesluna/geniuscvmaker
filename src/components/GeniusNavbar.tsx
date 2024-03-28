@@ -15,6 +15,7 @@ function GeniusNavbar({ auth }) {
 
   const menuItems = [
     { path: "/", command: goHome, name: "Home" },
+    { path: "/profile", command: goProfile, name: "My Profile" },
     { path: "/apps", command: goApps, name: "My CV Apps" },
     { path: "/scratch", command: goScratch, name: "Start my CV from Scratch" },
     { path: "/craft", command: goCraft, name: "Craft my CV" },
@@ -27,6 +28,7 @@ function GeniusNavbar({ auth }) {
   ];
 
   function goHome() { router.push('/') }
+  function goProfile() { router.push('/profile') }
   function goApps() { router.push('/apps') }
   function goScratch() { router.push('/scratch') }
   function goCraft() { router.push('/craft') }

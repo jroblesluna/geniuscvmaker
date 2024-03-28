@@ -1,10 +1,10 @@
 import { getApp } from "firebase/app";
 import {
-	signInWithPopup,
 	getAuth,
+	signInWithPopup,
 	GoogleAuthProvider,
 	signOut,
-	onAuthStateChanged,
+	onAuthStateChanged
 } from "firebase/auth";
 
 class AuthService {
@@ -18,19 +18,15 @@ class AuthService {
 		});
 	}
 
-	loginWithGoogle() {
-		return signInWithPopup(this.auth, new GoogleAuthProvider())
-			.then((userCred) => {
-				return {
-					user: userCred.user,
-				};
-			})
-			.catch((error) => {
-				return {
-					error: error.message,
-				};
-			});
+	async loginWithGoogle() {
+		try {
+			const userCred = await signInWithPopup(this.auth, new GoogleAuthProvider());
+			return { userCred: userCred };
+		} catch (error) {
+			return { error: error.message };
+		}
 	}
+
 	async logout() {
 		await signOut(this.auth);
 	}
