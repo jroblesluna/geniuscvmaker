@@ -7,7 +7,7 @@ import SvgCheck from '../components/svgCheck';
 import SvgCancel from '../components/svgCancel';
 
 function Profile({ auth }) {
-    const { user, setUser, logout } = auth;
+    const { user } = auth;
     const [userData, setUserData] = useState<DocumentData | null>(null);
     const [originalUserData, setOriginalUserData] = useState<DocumentData | null>(null);
     const [profileLoading, setProfileLoading] = useState(true);
@@ -16,34 +16,50 @@ function Profile({ auth }) {
         family_name: false,
         given_name: false
     });
-    const [remainingAttempts, setRemainingAttempts] = useState(2);
-    const [exhausted, setExhausted] = useState(false);
     const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
+    useEffect(() => {
 
-    async function fetchUserProfile() {
-        console.log("fetchUserProfie");
-        try {
-            const firestore = getFirestore();
-            const userDocRef = doc(firestore, "users", user.uid);
-            const userDocSnapshot = await getDoc(userDocRef);
-            if (userDocSnapshot.exists()) {
-                const userData = userDocSnapshot.data();
-                setUserData(userData);
-                setOriginalUserData({ ...userData });
-                setProfileLoading(false);
-                return true;
-            } else {
-                console.log("The user document doesn't exist");
-                return false;
+        const fetchData = async () => {
+            if (!userData || profileLoading) {
+                await fetchUserProfile();
             }
-        } catch (error) {
-            console.error('Error fetching user profile:', error);
-            return false;
+            else{
+                clearInterval(intervalId);
+            }
+        };
+
+        const fetchUserProfile = async () => {
+            console.log("fetchUserProfie");
+            try {
+                const firestore = getFirestore();
+                const userDocRef = doc(firestore, "users", user.uid);
+                const userDocSnapshot = await getDoc(userDocRef);
+                if (userDocSnapshot.exists()) {
+                    const userData = userDocSnapshot.data();
+                    setUserData(userData);
+                    setOriginalUserData({ ...userData });
+                    setProfileLoading(false);
+                } else {
+                    console.log("The user document doesn't exist");
+                }
+            } catch (error) {
+                console.error('Error fetching user profile:', error);
+            }
+        };
+
+
+        const intervalId = setInterval(fetchData, 3000);
+
+        if (user) {
+            fetchData();
+        };
+
+        if (userData && ! profileLoading){
+            clearInterval(intervalId);
         }
-    };
 
-
+    }, [user, userData, profileLoading]);
 
     const handleFocus = (event) => event.target.select();
 
@@ -80,7 +96,6 @@ function Profile({ auth }) {
             handleCancelEdit(field);
         }
     };
-
 
     const renderEditableField = (field: string, label: string) => {
         if (userData) {
@@ -119,40 +134,6 @@ function Profile({ auth }) {
         };
     };
 
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout;
-
-        // Función para realizar la lógica de manejo de intentos y ejecución de fetchUserProfile
-        const handleFetchUserProfile = async () => {
-            if (!userData && !exhausted) {
-                const fetchResult = fetchUserProfile();
-                if (await fetchResult) {
-                    clearInterval(intervalId);
-                    setRemainingAttempts(0);
-                    setExhausted(true);
-                } else {
-                    setRemainingAttempts(prevAttempts => {
-                        const updatedAttempts = prevAttempts - 1;
-                        if (updatedAttempts <= 0) {
-                            clearInterval(intervalId);
-                            setExhausted(true);
-                            setUser(null);
-                        }
-                        return updatedAttempts;
-                    });
-                }
-            }
-        };
-
-        // Ejecutar la lógica inicialmente
-        handleFetchUserProfile();
-
-        // Establecer intervalo para la lógica de manejo de intentos
-        intervalId = setInterval(handleFetchUserProfile, 5000);
-
-        // Limpiar el intervalo cuando el componente se desmonte
-        return () => clearInterval(intervalId);
-    }, []); // No hay dependencias para asegurar que solo se ejecute una vez
 
     return (
         <>
@@ -179,9 +160,8 @@ function Profile({ auth }) {
                             </div>
                         </div>
                     ) :
-                    (<>
+                    (
                         <LoadingScreen />
-                    </>
                     )
             }
         </>

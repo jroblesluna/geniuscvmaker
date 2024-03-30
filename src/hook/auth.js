@@ -15,8 +15,10 @@ export function AuthProvider(props) {
 
 	const loginWithGoogle = async () => {
 		const { error, userCred } = await AuthService.loginWithGoogle();
-		setUserCred(userCred ?? null);
-		setUser(userCred.user ?? null);
+		if (userCred){
+			setUserCred(userCred);
+			setUser(userCred.user);
+		}
 		setError(error ?? "");
 	};
 
