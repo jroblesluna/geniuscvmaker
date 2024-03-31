@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/router";
 import { UserCredential, getAdditionalUserInfo } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, collection, updateDoc, DocumentReference } from "firebase/firestore";
@@ -33,17 +33,11 @@ function Login({ auth }) {
 	}
 
 	async function checkAndCreateUserInFirestore(userCred: UserCredential) {
-		console.log("Checking...");
-		console.log("userCred",userCred);
-		console.log("user",user);
-		if (user && userCred ===null)
-		{
-			console.log("Already Logged In!");
+		if (user && userCred === null) {
 			setCanGo(true);
 			toast.success("Already Logged In!");
 		}
-		else
-		{
+		else {
 			if (userCred) {
 				const userFromUserCred = userCred.user;
 				const firestore = getFirestore();
@@ -88,6 +82,7 @@ function Login({ auth }) {
 						else {
 							console.log("Usuario Ya Existe");
 							setIsNewUser(false);
+							setCanGo(true);
 							toast.success("Welcome back!");
 						}
 					} else {
@@ -103,11 +98,6 @@ function Login({ auth }) {
 
 
 	useEffect(() => {
-		console.log("--------------------------------------");
-		console.log("Effect:user:", user);
-		console.log("Effect:isNewUser:", isNewUser);
-		console.log("Effect:isLoading:", isLoading);
-		console.log("Effect:canGo:", canGo);
 		if (user && !creationCheckRequested) {
 			console.log("IF1");
 			checkAndCreateUserInFirestore(userCred);
@@ -121,23 +111,19 @@ function Login({ auth }) {
 				setAiInvoked(true);
 			} else {
 				console.log("IF3");
-				console.log("Saving About Into Profile");
 				updateAbout();
-				console.log("Saved");
 				setCanGo(true);
 			}
 		}
 
-		if (isNewUser === false && !canGo) { // Welcome back
-			console.log("IF4");
-			setCanGo(true);
-		}
+	}, [user, isNewUser, isLoading]);
+
+	useEffect(() => {
 		if (canGo) {
 			console.log("ROUTING...");
-			router.push('/apps');
+			router.push(refUrl);
 		}
-
-	}, [user, isNewUser, isLoading, canGo]);
+	}, [canGo])
 
 	useEffect(() => {
 		if (isWorking && loginError != "") {
@@ -146,10 +132,6 @@ function Login({ auth }) {
 	}, [isWorking, loginError]);
 
 	function handleLogin() {
-		console.log(">>>> Effect:user:", user);
-		console.log(">>>> Effect:isNewUser:", isNewUser);
-		console.log(">>>> Effect:isLoading:", isLoading);
-		console.log(">>>> Effect:canGo:", canGo);
 		setIsWorking(true);
 		onClose();
 		loginWithGoogle();

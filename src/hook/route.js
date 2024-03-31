@@ -7,8 +7,11 @@ import { Toaster } from "react-hot-toast";
 export function withPublic(Component) {
 	return function WithPublic(props) {
 		const auth = useAuth();
-
-		return <Component auth={auth} protected={false} {...props} />;
+		return (
+			<>
+				<Toaster position="bottom-center" toastOptions={{ duration: 5000 }} />
+				<Component auth={auth} protected={false} {...props} />
+			</>);
 	};
 }
 
