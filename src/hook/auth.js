@@ -10,8 +10,7 @@ export default function useAuth() {
 export function AuthProvider(props) {
 	const [userCred, setUserCred] = useState(null);
 	const [user, setUser] = useState(null);
-	const [error, setError] = useState("");
-	const [profileCreated, setProfileCreated] = useState(false);
+	const [loginError, setLoginError] = useState("");
 
 	const loginWithGoogle = async () => {
 		const { error, userCred } = await AuthService.loginWithGoogle();
@@ -19,7 +18,7 @@ export function AuthProvider(props) {
 			setUserCred(userCred);
 			setUser(userCred.user);
 		}
-		setError(error ?? "");
+		setLoginError(error ?? "");
 	};
 
 	const logout = async () => {
@@ -27,7 +26,7 @@ export function AuthProvider(props) {
 		setUser(null);
 	};
 
-	const value = { userCred, user, error, profileCreated, loginWithGoogle, logout, setUser, setProfileCreated };
+	const value = { userCred, user, loginError, loginWithGoogle, logout, setUser };
 
 	return <authContext.Provider value={value} {...props} />;
 }

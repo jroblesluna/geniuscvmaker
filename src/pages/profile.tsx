@@ -5,6 +5,8 @@ import { withProtected } from '../hook/route';
 import LoadingScreen from '../components/loadingScreen';
 import SvgCheck from '../components/svgCheck';
 import SvgCancel from '../components/svgCancel';
+import { PhoneInput } from 'react-international-phone';
+import "react-international-phone/style.css";
 
 function Profile({ auth }) {
     const { user, setUser, logout } = auth;
@@ -16,7 +18,7 @@ function Profile({ auth }) {
         family_name: false,
         given_name: false
     });
-    const [remainingAttempts, setRemainingAttempts] = useState(2);
+    const [remainingAttempts, setRemainingAttempts] = useState(5);
     const [exhausted, setExhausted] = useState(false);
     const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
@@ -45,7 +47,10 @@ function Profile({ auth }) {
 
 
 
-    const handleFocus = (event) => event.target.select();
+    const handleFocus = (event) => {
+        event.target.focus();
+        event.target.select();
+    }
 
 
     const handleEditField = (field: string) => {
@@ -73,6 +78,10 @@ function Profile({ auth }) {
         setUserData((prevUserData) => ({ ...prevUserData, [field]: value }));
     };
 
+    const handleTelePhoneNumberChange = (telephoneNumber: string, field: string) => {
+        setUserData((prevUserData) => ({ ...prevUserData, [field]: telephoneNumber }));
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, field: string) => {
         if (e.key === 'Enter') {
             handleSaveField(field);
@@ -89,22 +98,28 @@ function Profile({ auth }) {
                     <p className="font-bold">{label}:</p>
                     {editableFields[field] ? (
                         <div className="flex items-center">
-                            <input
-                                type="text"
-                                id={`input_${field}`}
-                                name={`input_${field}`}
-                                ref={(element) => {
-                                    if (element) {
-                                        inputRefs.current[field] = element;
-                                    }
-                                }}
-                                autoFocus
-                                value={userData[field]}
-                                onChange={(e) => handleChange(e, field)}
-                                onKeyDown={(e) => handleKeyDown(e, field)}
-                                onFocus={handleFocus}
-                                className="border border-gray-300 px-2 py-1 rounded-md w-full"
-                            />
+                            {(field == "telephoneNumber") ?
+                                <PhoneInput
+                                    ref={(element) => { if (element) { inputRefs.current[field] = element; } }}
+                                    autoFocus
+                                    value={userData[field]}
+                                    onChange={(v) => handleTelePhoneNumberChange(v, field)}
+                                    onFocus={handleFocus}
+                                    className='w-full'
+                                    inputClassName='border border-gray-300 px-2 py-1 rounded-md w-full'
+                                />
+                                :
+                                <input
+                                    type="text"
+                                    ref={(element) => { if (element) { inputRefs.current[field] = element; } }}
+                                    autoFocus
+                                    value={userData[field]}
+                                    onChange={(e) => handleChange(e, field)}
+                                    onKeyDown={(e) => handleKeyDown(e, field)}
+                                    onFocus={handleFocus}
+                                    className="border border-gray-300 px-2 py-1 rounded-md w-full" />
+
+                            }
                             <button onClick={() => handleSaveField(field)} className="text-green-500"><SvgCheck /></button>
                             <button onClick={() => handleCancelEdit(field)} className="text-red-500"><SvgCancel /></button>
                         </div>
@@ -172,6 +187,10 @@ function Profile({ auth }) {
                                 {renderEditableField('displayName', 'Display Name')}
                                 {renderEditableField('family_name', 'Last Name / Family Name')}
                                 {renderEditableField('given_name', 'First Name / Given Name')}
+                                {renderEditableField('telephoneNumber', 'Telephone Number')}
+
+
+
                                 <div className="mb-4">
                                     <p className="font-bold">User UID:</p>
                                     <span>{user.uid}</span>

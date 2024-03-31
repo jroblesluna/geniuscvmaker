@@ -20,14 +20,7 @@ function Index({ auth }) {
     }, []);
 
 
-    const { user, loginWithGoogle, error } = auth;
-
-    function goHome() {router.push('/');}
     function goApps() {router.push('/apps');}
-    function goScratch() {router.push('/scratch');}
-    function goCraft() {router.push('/craft');}
-    function goOptimize() {router.push('/optimize');}
-    function goSpotlight() {router.push('/spotlight');}
     function goBuy() {router.push('/buy');}
     function goSupport() {router.push('/support');}
 

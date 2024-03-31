@@ -1,5 +1,3 @@
-'use client';
-
 import { useChat } from 'ai/react';
 import { withProtected } from '../hook/route';
 function Chat() {

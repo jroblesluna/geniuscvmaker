@@ -1,75 +1,159 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import { UserCredential, getAdditionalUserInfo } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, collection } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, updateDoc, DocumentReference } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from "react-hot-toast";
+import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, RadioGroup, Radio, Listbox, ListboxItem } from "@nextui-org/react";
+import { useCompletion } from 'ai/react';
 import { withPublic } from "../hook/route";
-import Link from 'next/link'
-import { Button, Checkbox, Tooltip, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, RadioGroup, Radio, Listbox, ListboxItem } from "@nextui-org/react";
+import SvgLoading from "../components/svgLoading";
+import SvgLogo from "../components/svgLogo";
 
-async function checkAndCreateUserInFirestore(userCred: UserCredential) {
-	if (userCred) {
-		const user = userCred.user;
-		console.log(user.uid);
-		const firestore = getFirestore();
-		const storage = getStorage();
-		console.log(storage);
-		if (user) {
-			const additionalUserInfo = await getAdditionalUserInfo(userCred);
-			if (additionalUserInfo !== null) {
-				const { profile } = additionalUserInfo;
-				const userCollectionRef = collection(firestore, "users");
-				const userRef = doc(userCollectionRef, user.uid);
-				const userSnapshot = await getDoc(userRef);
-				if (!userSnapshot.exists() && profile) {
-					let photoDownloadURL = "";
-					let uploadPath = `profilePictures/${user.uid}`;
-					console.log("uploadPath", uploadPath);
-					console.log(user.photoURL);
-					if (user.photoURL) {
-						const photoFetch = await fetch(user.photoURL);
-						const photoBlob = await photoFetch.blob();
-						console.log("1. storage", storage);
-						console.log("2. uploadPath", uploadPath);
-						const storageRef = ref(storage, uploadPath);
-						console.log("3. storageRef", storageRef);
-						const uploadResult = await uploadBytes(storageRef, photoBlob);
-						photoDownloadURL = await getDownloadURL(uploadResult.ref);
+
+function Login({ auth }) {
+	const { userCred, user, loginWithGoogle, loginError } = auth;
+	const router = useRouter();
+	const refUrl = router.query.ref as string || '/apps';
+	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+	const [scrollBehavior, setScrollBehavior] = React.useState("inside");
+	const { isLoading, completion, complete, error, data } = useCompletion();
+	const prompt = "Generate a succinct summary capturing the essence of the following: 'A driven and flexible professional with a diverse background spanning multiple industries. Exhibits outstanding communication, leadership, and problem-solving abilities, bolstered by a proven history of achievements. Thrives in high-pressure environments and remains dedicated to continuous learning and growth for success in varied roles.'";
+	const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
+	const [aiInvoked, setAiInvoked] = useState(false);
+	const [canGo, setCanGo] = useState(false);
+	const [isWorking, setIsWorking] = useState(false);
+	const [creationCheckRequested, setCreationCheckRequested] = useState(false);
+	const [userDocRef, setUserDocRef] = useState<DocumentReference | null>(null);
+
+	async function updateAbout() {
+		if (userDocRef) {
+			await updateDoc(userDocRef, { about: completion });
+		}
+	}
+
+	async function checkAndCreateUserInFirestore(userCred: UserCredential) {
+		console.log("Checking...");
+		console.log("userCred",userCred);
+		console.log("user",user);
+		if (user && userCred ===null)
+		{
+			console.log("Already Logged In!");
+			setCanGo(true);
+			toast.success("Already Logged In!");
+		}
+		else
+		{
+			if (userCred) {
+				const userFromUserCred = userCred.user;
+				const firestore = getFirestore();
+				const storage = getStorage();
+				if (userFromUserCred) {
+					console.log("Hay user");
+					const additionalUserInfo = await getAdditionalUserInfo(userCred);
+					if (additionalUserInfo !== null) {
+						console.log("Hay additional info");
+						const { profile } = additionalUserInfo;
+						const userCollectionRef = collection(firestore, "users");
+						const userRef = doc(userCollectionRef, userFromUserCred.uid);
+						setUserDocRef(userRef);
+						const userSnapshot = await getDoc(userRef);
+						if (!userSnapshot.exists() && profile) {
+							let photoDownloadURL = "";
+							let uploadPath = `profilePictures/${userFromUserCred.uid}`;
+							if (userFromUserCred.photoURL) {
+								const photoFetch = await fetch(userFromUserCred.photoURL);
+								const photoBlob = await photoFetch.blob();
+								const storageRef = ref(storage, uploadPath);
+								const uploadResult = await uploadBytes(storageRef, photoBlob);
+								photoDownloadURL = await getDownloadURL(uploadResult.ref);
+							}
+							await setDoc(userRef, {
+								email: userFromUserCred.email,
+								displayName: userFromUserCred.displayName,
+								family_name: profile.family_name,
+								given_name: profile.given_name,
+								photoURL: photoDownloadURL,
+								telephoneNumber: "+1",
+								addressStreet: "",
+								addressCity: "",
+								addressState: "",
+								addressCountry: "",
+								about: ""
+							});
+							console.log("Usuario Creado");
+							setIsNewUser(true);
+							toast.success('Your profile was created!');
+						}
+						else {
+							console.log("Usuario Ya Existe");
+							setIsNewUser(false);
+							toast.success("Welcome back!");
+						}
+					} else {
+						console.error("Additional User Info is Missing");
 					}
-					await setDoc(userRef, {
-						email: user.email,
-						displayName: user.displayName,
-						family_name: profile.family_name,
-						given_name: profile.given_name,
-						photoURL: photoDownloadURL,
-					});
-					toast.success('Your profile was created!');
 				}
 				else {
-					toast.success("Welcome back!");
+					console.log("No Hay user");
 				}
-			} else {
-				console.error("Additional User Info is Missing");
 			}
 		}
 	}
-}
 
-function Login({ auth }) {
-	const { userCred, user, loginWithGoogle, error } = auth;
-	const router = useRouter();
-	const ref = router.query.ref as string || '/apps';
-	const [termsAccepted, setTermsAccepted] = useState(false);
-	const { isOpen, onOpen, onOpenChange } = useDisclosure();
-	const [scrollBehavior, setScrollBehavior] = React.useState("inside");
 
 	useEffect(() => {
-		if (user) {
+		console.log("--------------------------------------");
+		console.log("Effect:user:", user);
+		console.log("Effect:isNewUser:", isNewUser);
+		console.log("Effect:isLoading:", isLoading);
+		console.log("Effect:canGo:", canGo);
+		if (user && !creationCheckRequested) {
+			console.log("IF1");
 			checkAndCreateUserInFirestore(userCred);
-			router.push(ref);
+			setCreationCheckRequested(true);
 		}
-	}, [user, router]);
+
+		if (isNewUser === true && !isLoading && !canGo) {
+			if (!aiInvoked) {
+				console.log("IF2");
+				complete(prompt);
+				setAiInvoked(true);
+			} else {
+				console.log("IF3");
+				console.log("Saving About Into Profile");
+				updateAbout();
+				console.log("Saved");
+				setCanGo(true);
+			}
+		}
+
+		if (isNewUser === false && !canGo) { // Welcome back
+			console.log("IF4");
+			setCanGo(true);
+		}
+		if (canGo) {
+			console.log("ROUTING...");
+			router.push('/apps');
+		}
+
+	}, [user, isNewUser, isLoading, canGo]);
+
+	useEffect(() => {
+		if (isWorking && loginError != "") {
+			setIsWorking(false);
+		}
+	}, [isWorking, loginError]);
+
+	function handleLogin() {
+		console.log(">>>> Effect:user:", user);
+		console.log(">>>> Effect:isNewUser:", isNewUser);
+		console.log(">>>> Effect:isLoading:", isLoading);
+		console.log(">>>> Effect:canGo:", canGo);
+		setIsWorking(true);
+		onClose();
+		loginWithGoogle();
+	}
 
 	return (
 		<>
@@ -82,6 +166,36 @@ function Login({ auth }) {
 							<Button onClick={onOpen} className="appButton p-2 w-fit rounded-xl text-lg">
 								Sign in with Google
 							</Button>
+						</div>
+						<div>
+							{data && (
+								<div className="w-full p-4 text-sm bg-gray-100 rounded-xl opacity-80">
+									<p className="mb-2 font-bold">Your AI description (change in Profile):</p>
+									<p className="mb-2">{completion}</p>
+									{error && (
+										<div className="fixed top-0 left-0 w-full p-4 text-center bg-red-500 text-white">
+											{error.message}
+										</div>
+									)}
+								</div>
+							)}
+							{(isWorking && loginError == "") ? (<div className="flex justify-center items-center relative">
+								<div className="absolute z-20 w-5">
+									<SvgLogo fillColor="#FFFFFF" />
+								</div>
+								<div className="z-10 w-24">
+									<SvgLoading />
+								</div>
+							</div>) : (
+								<>
+									{(loginError != "") && (
+										<div className="fixed top-0 left-0 w-full p-4 text-center bg-red-500 text-white">
+											{loginError}
+										</div>
+									)}
+								</>
+							)}
+
 						</div>
 					</div>
 				</div>
@@ -156,7 +270,7 @@ function Login({ auth }) {
 									<Button color="danger" onPress={onClose}>
 										Close
 									</Button>
-									<Button color="success" onPress={loginWithGoogle}>
+									<Button color="success" onPress={handleLogin}>
 										I Accept Terms of Service
 									</Button>
 								</ModalFooter>
