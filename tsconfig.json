@@ -28,7 +28,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "src/layout/AuthStateChanged.tsx"  ],
+, "src/layout/AuthStateChanged.tsx", "src/app/api/culqi/route.ts"  ],
   "exclude": [
     "node_modules"
   ]

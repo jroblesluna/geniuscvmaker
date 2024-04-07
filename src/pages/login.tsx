@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { useRouter } from "next/router";
 import { UserCredential, getAdditionalUserInfo } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc, collection, updateDoc, DocumentReference } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, collection, updateDoc, DocumentReference, serverTimestamp } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from "react-hot-toast";
 import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, RadioGroup, Radio, Listbox, ListboxItem } from "@nextui-org/react";
@@ -18,18 +18,53 @@ function Login({ auth }) {
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
 	const [scrollBehavior, setScrollBehavior] = React.useState("inside");
 	const { isLoading, completion, complete, error, data } = useCompletion();
-	const prompt = "Generate a succinct summary capturing the essence of the following: 'A driven and flexible professional with a diverse background spanning multiple industries. Exhibits outstanding communication, leadership, and problem-solving abilities, bolstered by a proven history of achievements. Thrives in high-pressure environments and remains dedicated to continuous learning and growth for success in varied roles.'";
+	const prompt = "Generate a succinct summary similar to the following: 'I'm a driven and flexible professional with a diverse background across multiple industries. I have outstanding communication, leadership, and problem-solving skills, and a proven history of achievements. I'm confident to excel in high-pressure environments and I'm dedicated to continuous learning and growth for success in varied roles.'";
 	const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
 	const [aiInvoked, setAiInvoked] = useState(false);
 	const [canGo, setCanGo] = useState(false);
 	const [isWorking, setIsWorking] = useState(false);
 	const [creationCheckRequested, setCreationCheckRequested] = useState(false);
 	const [userDocRef, setUserDocRef] = useState<DocumentReference | null>(null);
+	const [needsDelay, setNeedsDelay] = useState(false);
 
 	async function updateAbout() {
 		if (userDocRef) {
+			console.log("Grabando About");
 			await updateDoc(userDocRef, { about: completion });
+			setNeedsDelay(true);
+			console.log("About Grabado");
 		}
+	}
+
+	async function createCulqiUser (email: string, address: string, address_city: string, country_code: string, first_name: string, last_name: string, phone_number: string) {
+
+		try {
+			const response = await fetch('/api/culqi', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					culqiMethod: 'create.customers',
+					culqiBody: {
+						"first_name": first_name,
+						"last_name": last_name,
+						"email": email,
+						"address": address,
+						"address_city": address_city,
+						"country_code": country_code,
+						"phone_number": phone_number
+					}
+				}),
+			});
+			const data = await response.json();
+			console.log('Customer created:', data);
+			return (data);
+		} catch (error) {
+			console.error('Error creating customer:', error);
+			return null;
+		}
+
 	}
 
 	async function checkAndCreateUserInFirestore(userCred: UserCredential) {
@@ -53,31 +88,48 @@ function Login({ auth }) {
 						setUserDocRef(userRef);
 						const userSnapshot = await getDoc(userRef);
 						if (!userSnapshot.exists() && profile) {
-							let photoDownloadURL = "";
-							let uploadPath = `profilePictures/${userFromUserCred.uid}`;
-							if (userFromUserCred.photoURL) {
-								const photoFetch = await fetch(userFromUserCred.photoURL);
-								const photoBlob = await photoFetch.blob();
-								const storageRef = ref(storage, uploadPath);
-								const uploadResult = await uploadBytes(storageRef, photoBlob);
-								photoDownloadURL = await getDownloadURL(uploadResult.ref);
+							try {
+								let photoDownloadURL = "";
+								let uploadPath = `profilePictures/${userFromUserCred.uid}`;
+								let newAddress = "123 Main Street";
+								let newAddressCity = "Home Town";
+								let newAddressState = "California";
+								let newAddressCountry = "United States";
+								let newAddressCountryCode = "US";
+								let newPhoneNumber = "10000000000";
+								if (userFromUserCred.photoURL) {
+									const photoFetch = await fetch(userFromUserCred.photoURL);
+									const photoBlob = await photoFetch.blob();
+									const storageRef = ref(storage, uploadPath);
+									const uploadResult = await uploadBytes(storageRef, photoBlob);
+									photoDownloadURL = await getDownloadURL(uploadResult.ref);
+								}
+								console.log("Creando Culqi Customer");
+								let culqiCustomer =	await createCulqiUser(userFromUserCred.email as string, newAddress, newAddressCity, newAddressCountryCode, profile.given_name as string, profile.family_name as string, newPhoneNumber);
+								console.log("Customer ID",culqiCustomer.id);
+								await setDoc(userRef, {
+									email: userFromUserCred.email,
+									displayName: userFromUserCred.displayName,
+									lastName: profile.family_name,
+									firstName: profile.given_name,
+									photoURL: photoDownloadURL,
+									telephoneNumber: `+${newPhoneNumber}`,
+									addressStreet: newAddress,
+									addressCity: newAddressCity,
+									addressZipCode: "00000",
+									addressState: newAddressState,
+									addressCountry: newAddressCountry,
+									addressCountryCode: newAddressCountryCode,
+									about: "",
+									createdAt: serverTimestamp(),
+									culqiCustomerId: culqiCustomer?.id||"",
+								});
+								console.log("Usuario Creado");
+								setIsNewUser(true);
+								toast.success('A sample professional review was AI created for you! Update your profile!');
+							} catch (error) {
+								return { error: error.message };
 							}
-							await setDoc(userRef, {
-								email: userFromUserCred.email,
-								displayName: userFromUserCred.displayName,
-								family_name: profile.family_name,
-								given_name: profile.given_name,
-								photoURL: photoDownloadURL,
-								telephoneNumber: "+1",
-								addressStreet: "",
-								addressCity: "",
-								addressState: "",
-								addressCountry: "",
-								about: ""
-							});
-							console.log("Usuario Creado");
-							setIsNewUser(true);
-							toast.success('Your profile was created!');
 						}
 						else {
 							console.log("Usuario Ya Existe");
@@ -112,16 +164,29 @@ function Login({ auth }) {
 			} else {
 				console.log("IF3");
 				updateAbout();
-				setCanGo(true);
 			}
 		}
 
 	}, [user, isNewUser, isLoading]);
 
 	useEffect(() => {
+		let timerId: string | number | NodeJS.Timeout | undefined;
+		if (needsDelay) {
+			console.log("Delaying...");
+			timerId = setTimeout(() => {
+				console.log("Time's up!");
+				setCanGo(true);
+			}, 3000);
+		}
+		return () => {
+			clearTimeout(timerId);
+		};
+	}, [needsDelay]);
+
+	useEffect(() => {
 		if (canGo) {
 			console.log("ROUTING...");
-			router.push(refUrl);
+			router.push(isNewUser ? "/profile" : refUrl);
 		}
 	}, [canGo])
 
@@ -145,7 +210,7 @@ function Login({ auth }) {
 						<div className="white-text text-6xl text-center">genius</div>
 						<div className="mb-2 topic-title-white text-2xl text-center">CV MAKER</div>
 						<div className="m-2 flex justify-center items-center">
-							<Button onClick={onOpen} className="appButton p-2 w-fit rounded-xl text-lg">
+							<Button color="primary" variant="bordered" isLoading={isWorking} onClick={onOpen} className="p-4 w-fit rounded-xl text-lg bg-gray-200">
 								Sign in with Google
 							</Button>
 						</div>
@@ -166,7 +231,7 @@ function Login({ auth }) {
 									<SvgLogo fillColor="#FFFFFF" />
 								</div>
 								<div className="z-10 w-24">
-									<SvgLoading />
+									<SvgLoading fillColor="#FFFFFF" />
 								</div>
 							</div>) : (
 								<>
@@ -182,85 +247,72 @@ function Login({ auth }) {
 					</div>
 				</div>
 			</div>
-			<div className="flex flex-col gap-2">
-				<Button onPress={onOpen}>Open Modal</Button>
-				<RadioGroup
-					label="Select scroll behavior"
-					orientation="horizontal"
-					value={scrollBehavior}
-					onValueChange={setScrollBehavior}
-				>
-					<Radio value="inside">inside</Radio>
-					<Radio value="outside">outside</Radio>
-				</RadioGroup>
-				<Modal
-					isOpen={isOpen}
-					onOpenChange={onOpenChange}
-					backdrop="blur"
-					scrollBehavior="inside"
-				>
-					<ModalContent>
-						{(onClose) => (
-							<>
-								<ModalHeader className="flex flex-col gap-1">
-									Terms Of Service
-								</ModalHeader>
-								<ModalBody className="bg-gray-200 mx-3">
-									<div>These Terms of Service ("Terms") govern your use of the Genius CV Maker website and its services. By accessing or using our website and services, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you may not access or use our website and services.</div>
-									<div className="text-md font-bold">1. Description of Services</div>
-									<div className="">Genius CV Maker provides AI-powered tools for creating professional resumes and CVs. Our services include but are not limited to:</div>
-									<div className="">
-										<ul className="list-disc ml-4">
-											<li>Scratch: Create your first CV or résumé.</li>
-											<li>Craft: Answer questions about your skills and experience for AI-crafted CVs.</li>
-											<li>Optimize: Upload your existing CV for AI analysis and professional advice.</li>
-											<li>Spotlight: Tailor your CV for specific job or college applications.</li>
-										</ul>
-									</div>
-									<div className="text-md font-bold">2. User Accounts</div>
-									<div className="">You may be required to create a user account to access certain features of our website. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</div>
-									<div className="text-md font-bold">3. User Responsibilities</div>
-									<div className="">By using our services, you agree to:</div>
-									<div className="">
-										<ul className="list-disc ml-4">
-											<li>Provide accurate and up-to-date information.</li>
-											<li>Comply with all applicable laws and regulations.</li>
-											<li>Respect the intellectual property rights of others.</li>
-											<li>Use our services only for lawful purposes.</li>
-										</ul>
-									</div>
-									<div className="text-md font-bold">4. Intellectual Property Rights</div>
-									<div className="">You retain ownership of any content you create using our services. By using our services, you grant Genius CV Maker a non-exclusive, royalty-free license to use, reproduce, and modify your content solely for the purpose of providing our services to you.</div>
-									<div className="text-md font-bold">5. Privacy Policy</div>
-									<div className="">Your use of our website and services is subject to our Privacy Policy, which outlines how we collect, use, and protect your personal information. By using our website and services, you consent to the terms of our Privacy Policy.</div>
-									<div className="text-md font-bold">6. Payment Terms (if applicable)</div>
-									<div className="">Certain features of our website and services may be offered for a fee. Payment terms will be provided to you at the time of purchase and are subject to our billing and refund policies.</div>
-									<div className="text-md font-bold">7. Disclaimer of Warranties</div>
-									<div className="">Our services are provided on an "as is" and "as available" basis without any warranties, express or implied. We do not warrant that our services will be error-free, uninterrupted, or secure.</div>
-									<div className="text-md font-bold">8. Limitation of Liability</div>
-									<div className="">Genius CV Maker shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or in connection with your use of our website and services.</div>
-									<div className="text-md font-bold">9. Indemnification</div>
-									<div className="">You agree to indemnify and hold Genius CV Maker harmless from any claims, damages, liabilities, and expenses arising out of or in connection with your use of our website and services or your violation of these Terms.</div>
-									<div className="text-md font-bold">10. Governing Law and Dispute Resolution</div>
-									<div className="">These Terms shall be governed by and construed in accordance with the laws of the State of California. Any disputes arising out of or relating to these Terms shall be resolved exclusively by the competent courts of Cupertino, CA.</div>
-									<div className="text-md font-bold">11. Changes to the Terms</div>
-									<div className="">Genius CV Maker reserves the right to modify or revise these Terms at any time without prior notice. Any changes to these Terms will be effective immediately upon posting on our website. Your continued use of our website and services after the posting of changes constitutes your acceptance of such changes.</div>
-									<div className="text-md font-bold">12. Contact Information</div>
-									<div className="">If you have any questions or concerns about these Terms, please contact us at <a href="mailto:info@geniuscvmaker.com" className="text-blue-500">info@geniuscvmaker.com</a>.</div>
-								</ModalBody>
-								<ModalFooter>
-									<Button color="danger" onPress={onClose}>
-										Close
-									</Button>
-									<Button color="success" onPress={handleLogin}>
-										I Accept Terms of Service
-									</Button>
-								</ModalFooter>
-							</>
-						)}
-					</ModalContent>
-				</Modal>
-			</div>
+			<Modal
+				isOpen={isOpen}
+				onOpenChange={onOpenChange}
+				backdrop="blur"
+				scrollBehavior="inside">
+				<ModalContent>
+					{(onClose) => (
+						<>
+							<ModalHeader className="flex flex-col gap-1">
+								Terms Of Service
+							</ModalHeader>
+							<ModalBody className="bg-gray-200 mx-3">
+								<div>These Terms of Service ("Terms") govern your use of the Genius CV Maker website and its services. By accessing or using our website and services, you agree to be bound by these Terms. If you do not agree with any part of these Terms, you may not access or use our website and services.</div>
+								<div className="text-md font-bold">1. Description of Services</div>
+								<div className="">Genius CV Maker provides AI-powered tools for creating professional resumes and CVs. Our services include but are not limited to:</div>
+								<div className="">
+									<ul className="list-disc ml-4">
+										<li>Scratch: Create your first CV or résumé.</li>
+										<li>Craft: Answer questions about your skills and experience for AI-crafted CVs.</li>
+										<li>Optimize: Upload your existing CV for AI analysis and professional advice.</li>
+										<li>Spotlight: Tailor your CV for specific job or college applications.</li>
+									</ul>
+								</div>
+								<div className="text-md font-bold">2. User Accounts</div>
+								<div className="">You may be required to create a user account to access certain features of our website. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</div>
+								<div className="text-md font-bold">3. User Responsibilities</div>
+								<div className="">By using our services, you agree to:</div>
+								<div className="">
+									<ul className="list-disc ml-4">
+										<li>Provide accurate and up-to-date information.</li>
+										<li>Comply with all applicable laws and regulations.</li>
+										<li>Respect the intellectual property rights of others.</li>
+										<li>Use our services only for lawful purposes.</li>
+									</ul>
+								</div>
+								<div className="text-md font-bold">4. Intellectual Property Rights</div>
+								<div className="">You retain ownership of any content you create using our services. By using our services, you grant Genius CV Maker a non-exclusive, royalty-free license to use, reproduce, and modify your content solely for the purpose of providing our services to you.</div>
+								<div className="text-md font-bold">5. Privacy Policy</div>
+								<div className="">Your use of our website and services is subject to our Privacy Policy, which outlines how we collect, use, and protect your personal information. By using our website and services, you consent to the terms of our Privacy Policy.</div>
+								<div className="text-md font-bold">6. Payment Terms (if applicable)</div>
+								<div className="">Certain features of our website and services may be offered for a fee. Payment terms will be provided to you at the time of purchase and are subject to our billing and refund policies.</div>
+								<div className="text-md font-bold">7. Disclaimer of Warranties</div>
+								<div className="">Our services are provided on an "as is" and "as available" basis without any warranties, express or implied. We do not warrant that our services will be error-free, uninterrupted, or secure.</div>
+								<div className="text-md font-bold">8. Limitation of Liability</div>
+								<div className="">Genius CV Maker shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or in connection with your use of our website and services.</div>
+								<div className="text-md font-bold">9. Indemnification</div>
+								<div className="">You agree to indemnify and hold Genius CV Maker harmless from any claims, damages, liabilities, and expenses arising out of or in connection with your use of our website and services or your violation of these Terms.</div>
+								<div className="text-md font-bold">10. Governing Law and Dispute Resolution</div>
+								<div className="">These Terms shall be governed by and construed in accordance with the laws of the State of California. Any disputes arising out of or relating to these Terms shall be resolved exclusively by the competent courts of Cupertino, CA.</div>
+								<div className="text-md font-bold">11. Changes to the Terms</div>
+								<div className="">Genius CV Maker reserves the right to modify or revise these Terms at any time without prior notice. Any changes to these Terms will be effective immediately upon posting on our website. Your continued use of our website and services after the posting of changes constitutes your acceptance of such changes.</div>
+								<div className="text-md font-bold">12. Contact Information</div>
+								<div className="">If you have any questions or concerns about these Terms, please contact us at <a href="mailto:info@geniuscvmaker.com" className="text-blue-500">info@geniuscvmaker.com</a>.</div>
+							</ModalBody>
+							<ModalFooter>
+								<Button color="danger" onPress={onClose}>
+									Close
+								</Button>
+								<Button color="success" onPress={handleLogin}>
+									I Accept Terms of Service
+								</Button>
+							</ModalFooter>
+						</>
+					)}
+				</ModalContent>
+			</Modal>
 		</>
 	);
 }

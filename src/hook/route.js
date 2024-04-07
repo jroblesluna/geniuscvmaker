@@ -9,7 +9,7 @@ export function withPublic(Component) {
 		const auth = useAuth();
 		return (
 			<>
-				<Toaster position="bottom-center" toastOptions={{ duration: 5000 }} />
+				<Toaster position="top-center" toastOptions={{ duration: 5000 }} />
 				<Component auth={auth} protected={false} {...props} />
 			</>);
 	};
@@ -27,7 +27,7 @@ export function withProtected(Component) {
 			return (
 				<>
 					<GeniusNavbar auth={auth} />
-					<Toaster position="bottom-center" toastOptions={{ duration: 5000 }} />
+					<Toaster position="top-center" toastOptions={{ duration: 5000 }} />
 					<Component auth={auth} protected={true} {...props} />
 				</>
 			);

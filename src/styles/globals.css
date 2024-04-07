@@ -327,6 +327,12 @@ body {
   font-weight: bold;
 }
 
+.appWhiteOnOrange {
+  background-color: #FF4F22;
+  color: #ffffff;
+  font-weight: bold;
+}
+
 .bg-genius-orange {
   background-color: #FF4F22;
 }
