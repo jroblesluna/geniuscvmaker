@@ -1,38 +1,18 @@
-import { Button, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@nextui-org/react';
+import { Button, Input, Modal, ModalContent } from '@nextui-org/react';
+import { getFirestore, doc, getDoc, DocumentReference, collection, updateDoc } from "firebase/firestore";
+
 import CardIconsList from '../components/cardIconsList';
 import React, { useEffect, useState } from 'react';
 import { withProtected } from '../hook/route';
+import { toast } from 'react-hot-toast';
+import SvgCancel from '../components/svgCancel';
+import { useRouter } from 'next/router';
+import SvgStar from '../components/svgStar';
+import { Contact, CreditCard } from '../interfaces/culqi';
 
-interface Contact {
-    name: string;
-    number: string;
-    expiry: string;
-    security: string;
-    email: string;
-    errors: {
-        name?: string;
-        number?: string;
-        expiry?: string;
-        security?: string;
-        email?: string;
-    };
-}
 
-interface CreditCard {
-    source: {
-        card_number: string,
-        iin: {
-            card_brand: string,
-            card_type: string,
-            issuer: {
-                name: string,
-            },
-        },
-        last_four: string,
-    },
-}
 
-const EmptyContact = {
+const emptyContact = {
     name: '',
     number: '',
     expiry: '',
@@ -47,19 +27,47 @@ const EmptyContact = {
     }
 };
 
-function PaymentMethods() {
+function PaymentMethods({ auth }) {
+    const { user } = auth;
     const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
     const [showModal, setShowModal] = useState(false);
-    const [contact, setContact] = useState<Contact>(EmptyContact);
+    const [contact, setContact] = useState<Contact>({ ...emptyContact });
+    const [isLoading, setIsLoading] = useState(false);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [isFavoriting, setIsFavoriting] = useState(false);
+    const [favoriteCard, setFavoriteCard] = useState('');
+    const [userDocRef, setUserDocRef] = useState<DocumentReference | null>(null);
+
+    const router = useRouter(); // Initialize Next.js router
+
+    const { name, number, expiry, security, email, errors } = contact;
+
+    const lookupFavoriteCard = async () => {
+        console.log("fetchFavoriteCard");
+        try {
+            const firestore = getFirestore();
+            const userDocRef = doc(firestore, "users", user.uid);
+            setUserDocRef(userDocRef);
+            const userDocSnapshot = await getDoc(userDocRef);
+            if (userDocSnapshot.exists()) {
+                const userData = userDocSnapshot.data();
+                console.log("favoriteCard", userData["favoriteCard"]);
+                setFavoriteCard(userData["favoriteCard"] ?? '');
+                return true;
+            } else {
+                console.log("The user document doesn't exist");
+                return false;
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            return false;
+        }
+    };
+
 
     // Input field onChange handler
     const handleChange = (e) => {
-        console.log("Changing...", e);
-        console.log("Changing Target...", e.target);
-        console.log("Changing Target Name...", e.target.name);
-        console.log("Changing Target Value...", e.target.value);
         setContact({ ...contact, [e.target.name]: e.target.value });
-        console.log(contact);
     }
 
     // Input card expiry onKeyUp handler
@@ -83,7 +91,6 @@ function PaymentMethods() {
     const handleValidation = () => {
         const { name, number, expiry, security, email, errors } = contact;
         let formIsValid = true;
-        console.log("HIXXX");
 
         if (!name || name.length < 5) {
             formIsValid = false;
@@ -99,16 +106,14 @@ function PaymentMethods() {
         } else {
             errors['email'] = '';
         }
-        console.log("HI", contact);
+
         if (!number) {
             formIsValid = false;
             errors['number'] = 'Card number is required';
         } else {
             // Luhn algorithm validation
             const isValidCardNumber = validateCardNumber(number);
-            console.log("Number length", number.length);
             if (!isValidCardNumber || number.length < 14) {
-                console.log("Sorry card");
                 formIsValid = false;
                 errors['number'] = 'Invalid card number';
             } else {
@@ -167,30 +172,163 @@ function PaymentMethods() {
         return emailRegex.test(email);
     }
 
+    async function createCulqiToken(card_number: string, cvv: string, expiration_month: string, expiration_year: string, email: string) {
+        try {
+            console.log("expiry");
+            console.log(expiry);
+            console.log("expiration_month", expiration_month);
+            console.log("expiration_year", expiration_year);
+            const response = await fetch('/api/culqi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    culqiMethod: 'create.tokens',
+                    culqiBody: {
+                        "card_number": card_number,
+                        "cvv": cvv,
+                        "expiration_month": expiration_month,
+                        "expiration_year": expiration_year,
+                        "email": email,
+                    }
+                }),
+            });
+            const data = await response.json();
+            console.log('Token data:', data);
+            return (data);
+        } catch (error) {
+            console.error('Error creating token:', error);
+            return null;
+        }
+    }
+
+    async function createCulqiCard(customer_id: string, token_id: string, expiry: string, name: string) {
+        console.log(customer_id);
+        console.log(token_id);
+        console.log(expiry);
+        console.log(name);
+        try {
+            console.log("customer_id", customer_id);
+            console.log("token_id", token_id);
+            const response = await fetch('/api/culqi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    culqiMethod: 'create.cards',
+                    culqiBody: {
+                        "customer_id": customer_id,
+                        "token_id": token_id,
+                        "metadata": {
+                            "expiry": expiry,
+                            "name": name,
+                        }
+                    }
+                }),
+            });
+            const data = await response.json();
+            console.log('Card data:', data);
+            return (data);
+        } catch (error) {
+            console.error('Error creating card:', error);
+            return null;
+        }
+    }
+
+
+    async function deleteCulqiCard(culqiCardId: string) {
+        try {
+            console.log("culqiCardId", culqiCardId);
+            const response = await fetch('/api/culqi', {
+                method: 'POST',//Don't get confused, this is always POST
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    culqiMethod: 'delete.cards',
+                    culqiBody: {
+                        "id": culqiCardId
+                    }
+                }),
+            });
+            const data = await response.json();
+            console.log('Deleted Card:', data);
+            return (data);
+        } catch (error) {
+            console.error('Error listing customer:', error);
+            return null;
+        }
+    }
+
+    async function listCulqiCustomerByEmail(email: string) {
+        try {
+            console.log("email", email);
+            const response = await fetch('/api/culqi', {
+                method: 'POST',//Don't get confused, this is always POST
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    culqiMethod: 'list.customers',
+                    culqiBody: {
+                        "email": email
+                    }
+                }),
+            });
+            const data = await response.json();
+            console.log('Customer data:', data);
+            return (data);
+        } catch (error) {
+            console.error('Error listing customer:', error);
+            return null;
+        }
+    }
+
     // Form onSubmit handler
-    const handleSubmit = (e) => {
-        console.log("Submitting");
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const { name, number, expiry, security, email } = contact;
 
         if (handleValidation()) {
-            setContact({ ...contact, errors: {} });
-            console.log({
-                name,
-                number,
-                expiry,
-                security,
-                email
-            });
+            setIsLoading(true);
+            console.log("contact.expiry", contact.expiry);
+            let culqiToken = await createCulqiToken(contact.number, contact.security, contact.expiry.substring(0, 2), "20" + contact.expiry.substring(3, 5), contact.email);
+
+            console.log("culqiToken", culqiToken);
+
+            if (culqiToken.object == "error") {
+                console.log(culqiToken.user_message);
+                toast.error(culqiToken.user_message);
+            }
+            else {
+                const culqiCustomerId = (await listCulqiCustomerByEmail(culqiToken.email)).data[0].id;
+
+                let culqiCard = await createCulqiCard(culqiCustomerId, culqiToken.id, contact.expiry, contact.name);
+
+                console.log("culqiCard", culqiCard);
+
+                if (culqiCard.object == "error") {
+                    console.log(culqiCard.merchant_message);
+                    toast.error(culqiCard.merchant_message);
+                }
+                else {
+                    toast.success("Your card was registered.");
+                    await fetchCards();
+                }
+            }
+
+            setContact({ ...emptyContact });
+            setShowModal(false);
         }
+
     }
 
-    const { name, number, expiry, security, email, errors } = contact;
 
     // Input onKeyDown numbers only handler
     const handleNumbersOnly = (e) => {
 
-        console.log(e);
         let flag;
 
         if ((e.keyCode === 8) ||
@@ -202,7 +340,6 @@ function PaymentMethods() {
             (e.keyCode >= 48 && e.keyCode <= 57) ||
             (e.keyCode >= 96 && e.keyCode <= 105)) {
             flag = false;
-            console.log("ACEPTADO");
         } else {
             flag = true;
         }
@@ -213,7 +350,6 @@ function PaymentMethods() {
     }
 
     const getCardType = (number) => {
-        console.log(number);
         if (number !== '' || number !== null) {
             const amexReg = new RegExp('^3[47]');
             const dinersReg = new RegExp('^3(?:0[0-5]|[68][0-9])[0-9]{11}$');
@@ -234,71 +370,131 @@ function PaymentMethods() {
         }
     }
 
-    useEffect(() => {
-        const fetchCards = async () => {
-            try {
-                const response = await fetch('/api/culqi', {
-                    method: "POST",
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        culqiMethod: "list.cards",
-                        culqiBody: {}
-                    }),
-                });
-                const data = await response.json();
-                console.log(data.data);
-                setCreditCards(data.data);
-            } catch (error) {
-                console.error('Error fetching credit cards:', error);
-            }
-        };
+    const fetchCards = async () => {
+        try {
+            const response = await fetch('/api/culqi', {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    culqiMethod: "list.cards",
+                    culqiBody: {}
+                }),
+            });
+            const data = await response.json();
+            console.log(data);
+            setCreditCards(data.data);
+            setIsFavoriting(true);
+            await lookupFavoriteCard();
+            setIsFavoriting(false);
+        } catch (error) {
+            console.error('Error fetching credit cards:', error);
+        }
+    };
 
+    useEffect(() => {
         fetchCards();
     }, []);
 
     const handleAddCard = () => {
-        console.log(contact);
-        setContact(EmptyContact)
-        /*errors.name = "";
-        errors.number = "";
-        errors.expiry = "";
-        errors.security = "";
-        errors.email = "";*/
+        contact.name = user.displayName.toUpperCase();
+        contact.email = user.email;
+        setIsLoading(false);
         setShowModal(true);
-        console.log(contact);
     };
 
-    const handleModalClose = () => {
+    const handleModalClose = async () => {
+        setContact({ ...emptyContact });
         setShowModal(false);
     };
 
-    return (
-        <div className='container mx-auto px-4'>
-            <h1 className='text-3xl font-bold my-4 text-center'>My Payment Methods</h1>
+    const handleRemoveCard = async (culqiCardId: string) => {
+        setIsRemoving(true);
+        let removalResponse = await deleteCulqiCard(culqiCardId);
+        if (removalResponse.deleted) {
+            toast.success("Card was successfully deleted.")
+            await fetchCards();
+        }
+        else {
+            toast.error(removalResponse.merchant_message);
+        }
+        setIsRemoving(false);
+        console.log(removalResponse);
+    }
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    const handleSetFavoriteCard = async (culqiCardId: string) => {
+        if (userDocRef && favoriteCard != culqiCardId) {
+            setIsFavoriting(true);
+            await updateDoc(userDocRef, { favoriteCard: culqiCardId });
+            await lookupFavoriteCard();
+            setIsFavoriting(false);
+        }
+    }
+
+    function goBuy() {
+        router.push('/buy')
+    }
+
+
+    return (
+        <div className='container mx-auto px-6'>
+            <h1 className=' text-3xl font-bold my-4 text-center'>My Payment Methods</h1>
+            <div>You need to have at least one registered Card to buy a Subscription.</div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 justify-items-center">
                 {creditCards.map((card, index) => (
-                    <div key={index} className="bg-gradient-to-tr from-blue-950 to-blue-300 rounded-md shadow p-4">
-                        <div className="text-sm text-white">
-                            <p>{`Issuer: ${card.source.iin.issuer.name}`}</p>
-                            <p>{`Card Type: ${card.source.iin.card_type}`}</p>
+                    <div key={index} className="bg-gradient-to-tr from-blue-950 to-blue-300 rounded-md p-3 w-80 shadow-blue-950 shadow-md">
+                        <div className="flex flex-cols-2 items-start">
+                            <div className='w-full'>
+                                <span className='text-md embossed'>{card.source.iin.issuer.name}</span>
+                            </div>
+                            <Button
+                                isLoading={isRemoving}
+                                isIconOnly
+                                className='text-red-500'
+                                variant='light'
+                                size="sm"
+                                onClick={() => handleRemoveCard(card.id)}>
+                                <SvgCancel />
+                            </Button>
                         </div>
-                        <div className="flex items-center justify-center m-4">
-                            <span className="text-white text-xl font-mono font-bold">{`**** ${card.source.card_number.length === 16 ? '**** **** ' : '****** '}${card.source.card_number.length === 15 ? '*' : ''}${card.source.last_four}`}</span>
+                        <div className="flex items-center justify-center mt-4">
+                            <span className="text-lg embossed">{`**** ${card.source.card_number.length === 16 ? '**** **** ' : '****** '}${card.source.card_number.length === 15 ? '*' : ''}${card.source.last_four}`}</span>
                         </div>
-                        <div className="flex items-center justify-end">
+                        <div className="flex items-center justify-center mb-2">
+                            <Button
+                            isLoading={isFavoriting}
+                                className='text-yellow-500 text-md'
+                                variant="light"
+                                onClick={() => handleSetFavoriteCard(card.id)}
+                                startContent={
+                                    <SvgStar fillColor={(card.id === favoriteCard) ? "#FFD122" : "transparent"} />
+                                }>Mark Favorite</Button>
+                        </div>
+                        <div className="flex flex-cols-2 items-center">
+                            <div className='w-full'>
+                                <div className='text-gray-300'>
+                                    <span className='text-md'>EXP:</span> <span className='text-xs embossed'>{card.metadata.expiry}</span>
+                                </div>
+                                <div className='text-sm embossed'>
+                                    {card.metadata.name}
+                                </div>
+                            </div>
                             <img
                                 src={`/assets/svg/${card.source.iin.card_brand.toLowerCase()}.svg`}
                                 alt={card.source.iin.card_brand}
-                                className="bg-white h-8 p-0.5 rounded-md" />
+                                className="h-10 rounded-md border-1" />
+
                         </div>
                     </div>
                 ))}
             </div>
             <div className='mt-4'>
-                <Button className='appWhiteOnOrange' onClick={handleAddCard}>Add New Card</Button>
+                <Button className='appWhiteOnBlue' onClick={handleAddCard}>Register New Card</Button>
+            </div>
+            <div className='mt-4'>
+                <Button className='appBlackOnCitrine' onClick={goBuy}>Buy Subscriptions</Button>
             </div>
             <Modal
                 isOpen={showModal}
@@ -336,6 +532,7 @@ function PaymentMethods() {
                                 errorMessage={errors.email}
                             />
                             <Input
+                                autoFocus
                                 className='h-20'
                                 key="cardNumber"
                                 label="Card Number"
@@ -386,9 +583,8 @@ function PaymentMethods() {
                             </div>
                             <Button
                                 color="primary"
-                                radius="none"
-                                className="border-xl"
                                 onClick={handleSubmit}
+                                isLoading={isLoading}
                             >ADD CARD</Button>
                         </div>
                     </div>

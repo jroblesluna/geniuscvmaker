@@ -26,11 +26,12 @@ function Profile({ auth }) {
     const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
 
     async function fetchUserProfile() {
-        console.log("fetchUserProfie");
+        console.log("fetchUserProfile");
         try {
             const firestore = getFirestore();
             const userDocRef = doc(firestore, "users", user.uid);
             const userDocSnapshot = await getDoc(userDocRef);
+            console.log("userDocSnapshot",userDocSnapshot);
             if (userDocSnapshot.exists()) {
                 const userData = userDocSnapshot.data();
                 setUserData(userData);
@@ -241,6 +242,7 @@ function Profile({ auth }) {
     }, []); // No hay dependencias para asegurar que solo se ejecute una vez
 
     useEffect(() => {
+        console.log(user.uid);
 
     }, []);
     return (
