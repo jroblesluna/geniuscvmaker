@@ -31,7 +31,7 @@ function Profile({ auth }) {
             const firestore = getFirestore();
             const userDocRef = doc(firestore, "users", user.uid);
             const userDocSnapshot = await getDoc(userDocRef);
-            console.log("userDocSnapshot",userDocSnapshot);
+            console.log("userDocSnapshot", userDocSnapshot);
             if (userDocSnapshot.exists()) {
                 const userData = userDocSnapshot.data();
                 setUserData(userData);
