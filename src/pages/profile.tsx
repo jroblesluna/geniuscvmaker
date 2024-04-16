@@ -23,7 +23,7 @@ function Profile({ auth }) {
     });
     const [remainingAttempts, setRemainingAttempts] = useState(5);
     const [exhausted, setExhausted] = useState(false);
-    const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | null>>({});
+    const inputRefs = useRef<Record<string, HTMLInputElement | HTMLTextAreaElement | CountryDropdown | RegionDropdown | null>>({});
 
     async function fetchUserProfile() {
         console.log("fetchUserProfile");
@@ -138,6 +138,10 @@ function Profile({ auth }) {
 
     const handleInputStringChange = (value: string, field: string) => {
         setUserData((prevUserData) => ({ ...prevUserData, [field]: value }));
+        if (field === "addressCountry") {
+            let newAddressStateValue = CountryRegionData.find(data => data[0] === value)?.[2].split(/[~|]/)[0];
+            setUserData((prevUserData) => ({ ...prevUserData, ["addressState"]: newAddressStateValue }));
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, field: string) => {
@@ -273,11 +277,13 @@ function Profile({ auth }) {
                                         <div className="flex items-center">
                                             <div className='grid grid-cols-1 gap-2 w-full mt-1 mr-2'>
                                                 <CountryDropdown
+                                                    ref={(element) => { if (element) { inputRefs.current["addressCountry"] = element; } }}
                                                     showDefaultOption={false}
                                                     value={userData["addressCountry"]}
                                                     onChange={(e) => handleInputStringChange(e, "addressCountry")}
                                                     classes="w-full h-10 bg-gray-100 rounded-xl px-2" />
                                                 <RegionDropdown
+                                                    ref={(element) => { if (element) { inputRefs.current["addressState"] = element; } }}
                                                     showDefaultOption={false}
                                                     country={userData["addressCountry"]}
                                                     value={userData["addressState"]}
