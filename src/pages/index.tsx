@@ -21,7 +21,7 @@ function Index({ auth }) {
 
 
     function goApps() {router.push('/apps');}
-    function goBuy() {router.push('/buy');}
+    function goSubscriptions() {router.push('/subscriptions');}
     function goSupport() {router.push('/support');}
 
     return (
@@ -111,7 +111,7 @@ function Index({ auth }) {
                                         <div className="topic-text-white mt-1 text-[4.5vw] sm:text-[2.5vw] md:text-[3vw] lg:text-[2vw] xl:text-[2vw] font-bold">Expires: 1 month</div>
                                     </div>
                                     <div className="appButtonContainer flex justify-right w-full justify-start items-center">
-                                        <button onClick={goBuy} className="appButton text-[3vw] sm:text-[2.5vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded">GET STARTED</button>
+                                        <button onClick={goSubscriptions} className="appButton text-[3vw] sm:text-[2.5vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded">GET STARTED</button>
                                     </div>
                                 </div>
                                 <div className='grid grid-cols-2 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1'>
@@ -127,7 +127,7 @@ function Index({ auth }) {
                                         <div className="topic-text-white mt-1 text-[4.5vw] sm:text-[2.5vw] md:text-[3vw] lg:text-[2vw] xl:text-[2vw] font-bold">Expires: 4 months</div>
                                     </div>
                                     <div className="appButtonContainer flex justify-right w-full justify-start items-center">
-                                        <button onClick={goBuy} className="appButton text-[3vw] sm:text-[2.5vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded">GET STARTED</button>
+                                        <button onClick={goSubscriptions} className="appButton text-[3vw] sm:text-[2.5vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded">GET STARTED</button>
                                     </div>
                                 </div>
                                 <div className='grid grid-cols-2 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 xl:grid-cols-1'>
@@ -138,7 +138,7 @@ function Index({ auth }) {
                                         <div className="topic-text-white mt-1 text-[4.5vw] sm:text-[2.5vw] md:text-[3vw] lg:text-[2vw] xl:text-[2vw] font-bold">Exp in: 12 months</div>
                                     </div>
                                     <div className="appButtonContainer flex justify-right w-full justify-start items-center">
-                                        <button onClick={goBuy} className="appButton text-[3vw] sm:text-[2.5vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded">GET STARTED</button>
+                                        <button onClick={goSubscriptions} className="appButton text-[3vw] sm:text-[2.5vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded">GET STARTED</button>
                                     </div>
                                 </div>
                             </div>

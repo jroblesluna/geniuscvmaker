@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, use } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Input, Textarea } from '@nextui-org/react';
 import { getFirestore, doc, getDoc, DocumentData, updateDoc } from "firebase/firestore";
 import SvgEdit from "../components/svgEdit";
@@ -253,7 +253,7 @@ function Profile({ auth }) {
         <>
             {
                 !profileLoading && userData && user ? (
-                    <div className="container mx-auto px-4 py-4 max-w-lg mx-auto">
+                    <div className="container mx-auto px-4 py-4 max-w-lg">
                         <div className="text-center mb-8">
                             <h1 className="text-3xl font-bold text-gray-800 mb-4">{userData.displayName}</h1>
                             <img src={userData.photoURL} className="mx-auto rounded-full w-24 h-24" alt="User Profile" />
@@ -306,7 +306,6 @@ function Profile({ auth }) {
                             <div className="mb-4 text-xs text-center">
                                 <p className="font-light">Google UID: <span>{user.uid}</span></p>
                                 <p className="font-light">Culqi ID: <span>{userData["culqiCustomerId"]}</span></p>
-
                             </div>
                         </div>
                     </div>) : (

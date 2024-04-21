@@ -1,0 +1,156 @@
+{
+    "paging": {
+        "cursors": {
+            "before": "sxn_test_D5Le8M4LlhRJk74N",
+            "after": "sxn_test_uajxbXiYFcdKrLFJ"
+        },
+        "previous": "https://api.culqi.com/v2/recurrent/subscriptions?&before=sxn_test_D5Le8M4LlhRJk74N",
+        "next": "https://api.culqi.com/v2/recurrent/subscriptions?&after=sxn_test_uajxbXiYFcdKrLFJ",
+        "remaining_items": 0
+    },
+    "data": [
+        {
+            "object": "subscription",
+            "id": "sxn_test_uajxbXiYFcdKrLFJ",
+            "creation_date": 1713325203,
+            "status": 1,
+            "plan_id": "pln_test_3e80OlKuFyzklNSh",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_EKgza23iZFlNTkpe",
+            "creation_date": 1713325170,
+            "status": 1,
+            "plan_id": "pln_test_9E8E9FTVpkzr16r0",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_tkIVgAfvwCwrVyUl",
+            "creation_date": 1713325089,
+            "status": 1,
+            "plan_id": "pln_test_dIGPVlOXPeF6t2nE",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_IalXgulKO6L8Pl9Y",
+            "creation_date": 1713324452,
+            "status": 4,
+            "plan_id": "pln_test_9E8E9FTVpkzr16r0",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_RZ7kLN4sTm1WKKzH",
+            "creation_date": 1713324416,
+            "status": 4,
+            "plan_id": "pln_test_dIGPVlOXPeF6t2nE",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_MrADAPTF5LvdkIbq",
+            "creation_date": 1713324194,
+            "status": 4,
+            "plan_id": "pln_test_3e80OlKuFyzklNSh",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_D08MKMRu08C3tYvh",
+            "creation_date": 1713321732,
+            "status": 4,
+            "plan_id": "pln_test_9E8E9FTVpkzr16r0",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_ehruhgXjJmg3n8an",
+            "creation_date": 1713321604,
+            "status": 4,
+            "plan_id": "pln_test_dIGPVlOXPeF6t2nE",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_Rf0G0Sp3sOnwOueb",
+            "creation_date": 1713319068,
+            "status": 4,
+            "plan_id": "pln_test_9E8E9FTVpkzr16r0",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_X9vAV3QpMGwcSuMA",
+            "creation_date": 1713270249,
+            "status": 4,
+            "plan_id": "pln_test_dIGPVlOXPeF6t2nE",
+            "card_id": "crd_test_3DwxS1yww7rLG6rH",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        },
+        {
+            "object": "subscription",
+            "id": "sxn_test_D5Le8M4LlhRJk74N",
+            "creation_date": 1712455342,
+            "status": 4,
+            "plan_id": "pln_test_3e80OlKuFyzklNSh",
+            "card_id": "crd_test_XnexioLuCwXIt3OT",
+            "customer": {
+                "first_name": "Antonio Javier",
+                "last_name": "Robles Luna",
+                "email": "jrobles@sistemas.com.pe"
+            }
+        }
+    ]
+}

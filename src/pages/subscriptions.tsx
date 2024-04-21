@@ -1,12 +1,12 @@
 import { Button, Modal, ModalContent, ModalHeader, ModalFooter, ModalBody, Checkbox, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Selection, CheckboxGroup } from '@nextui-org/react';
 import React, { useEffect, useState } from 'react';
-import { CreditCard, Plan, getDefaultPlan } from '../interfaces/culqi';
+import { CreditCard, Plan, Subscription, getDefaultPlan } from '../interfaces/culqi';
 import SvgLoading from '../components/svgLoading';
 import SvgLogo from '../components/svgLogo';
-import { withProtected } from '../hook/route';
-import { doc, getDoc, getFirestore } from '@firebase/firestore';
-import { useRouter } from 'next/router';
+import { doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc } from '@firebase/firestore';
 import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
+import { withProtected } from '../hook/route';
 
 const benefits = {
     "genius-01": {
@@ -38,27 +38,17 @@ const benefits = {
     }
 }
 
-const Buy = ({ auth }) => {
+const MySubscriptions = ({ auth }) => {
     const { user } = auth;
     const [isLoaded, setIsLoaded] = useState(false);
     const [plans, setPlans] = useState<Plan[]>([]);
+    const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [selectedPlan, setSelectedPlan] = useState<Plan>(getDefaultPlan);
     const [isOpen, setIsOpen] = useState(false);
-    const [formData, setFormData] = useState({
-        cardNumber: '',
-        expiry: '',
-        cvv: '',
-        saveCard: false
-    });
-
     const [selectedCard, setSelectedCard] = useState<CreditCard | undefined>(undefined);
-
     const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
-
     const [isSubscribing, setIsSubscribing] = useState(false);
-
     const [isInvalid, setIsInvalid] = useState(false);
-
     const router = useRouter(); // Initialize Next.js router
 
     useEffect(() => {
@@ -73,7 +63,10 @@ const Buy = ({ auth }) => {
             }),
         })
             .then(response => response.json())
-            .then(data => setPlans(data.data))
+            .then(data => {
+                console.log("Plans", data.data);
+                setPlans(data.data);
+            })
             .catch(error => console.error('Error al obtener la lista de planes:', error))
             .finally(() => setIsLoaded(true));
     }, []);
@@ -84,17 +77,13 @@ const Buy = ({ auth }) => {
             const firestore = getFirestore();
             const userDocRef = doc(firestore, "users", user.uid);
             const userDocSnapshot = await getDoc(userDocRef);
-            console.log("userDocSnapshot is: ", userDocSnapshot);
             if (userDocSnapshot.exists()) {
                 const userData = userDocSnapshot.data();
-                console.log("favoriteCard", userData["favoriteCard"]);
                 return (userData["favoriteCard"] ?? '');
             } else {
-                console.log("The user document doesn't exist");
                 return "";
             }
         } catch (error) {
-            console.error('Error fetching user profile:', error);
             return "";
         }
     };
@@ -113,21 +102,40 @@ const Buy = ({ auth }) => {
                 }),
             });
             const data = await response.json();
-            console.log("Pre-Analyzing");
-            console.log(data);
             setCreditCards(data.data);
-            console.log("Querying Favorite");
             let favoriteCardId = await lookupFavoriteCard();
-            console.log("Found favoriteCardId:", favoriteCardId)
             let favoriteCard = data.data.find(card => card.id === favoriteCardId);
             setSelectedCard(favoriteCard);
         } catch (error) {
-            console.error('Error fetching credit cards:', error);
+            toast.error("Can't get Subscriptions Plans.");
         }
     };
 
 
+    const fetchActiveSubscriptions = async () => {
+        try {
+            const firestore = getFirestore();
+            const userDocRef = doc(firestore, "users", user.uid);
+            const userDocSnapshot = await getDoc(userDocRef);
+            if (userDocSnapshot.exists()) {
+                const userData = userDocSnapshot.data();
+                console.log("userData.subscriptions", userData.subscriptions);
+                setSubscriptions(userData.subscriptions);
+                return true;
+            } else {
+                console.log("The user document doesn't exist");
+                return false;
+            }
+        } catch (error) {
+            toast.error("Can't get Active Subscriptions.");
+        }
+    };
+
+
+
+
     useEffect(() => {
+        fetchActiveSubscriptions();
         fetchCards();
     }, []);
 
@@ -163,6 +171,7 @@ const Buy = ({ auth }) => {
         let selectedPlan = plans.find(plan => plan.id === planId);
         if (selectedPlan) {
             setSelectedPlan(selectedPlan);
+            setIsInvalid(true);
             setIsOpen(true);
         }
         else {
@@ -173,40 +182,81 @@ const Buy = ({ auth }) => {
     const handleFormSubmit = async () => {
         try {
             setIsSubscribing(true);
-
-/*
-            fetch('/api/culqi', {
+            const response = await fetch('/api/culqi', {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     culqiMethod: "create.subscriptions",
-                    culqiBody: {}
+                    culqiBody: {
+                        card_id: selectedCard?.id,
+                        plan_id: selectedPlan.id,
+                        tyc: !{ isInvalid },
+                        metadata: {
+                            plan_name: selectedPlan.name,
+                            plan_currency: selectedPlan.currency,
+                            plan_amount: selectedPlan.amount,
+                        }
+                    }
                 }),
-            })
-                .then(response => response.json())
-                .then(data => setPlans(data.data))
-                .catch(error => console.error('Error al obtener la lista de planes:', error))
-                .finally(() => setIsLoaded(true));
+            });
+            const data = await response.json();
+            if (data.id) {
+                const firestore = getFirestore();
+                const userDocRef = doc(firestore, "users", user.uid);
 
-*/
-            setIsSubscribing(false);
-            setIsOpen(false);
+                // Fetch the existing subscriptions array from Firestore
+                const userDocSnapshot = await getDoc(userDocRef);
+                const userData = userDocSnapshot.data();
+                const existingSubscriptions = userData?.subscriptions || [];
+
+                // Merge the new subscription data with the existing subscriptions array
+                const updatedSubscriptions = [...existingSubscriptions, data];
+
+                // Update the Firestore document with the merged subscriptions array
+                await setDoc(userDocRef, {
+                    subscriptions: updatedSubscriptions
+                }, { merge: true });
+
+                toast.success(`Subscription was created: ${data.id}`);
+                fetchActiveSubscriptions();
+            } else {
+                toast.error(data.merchant_message);
+            }
         } catch (error) {
             console.error('Error creating subscription:', error.merchant_message);
+        } finally {
+            setIsSubscribing(false);
+            setIsOpen(false);
         }
     };
-
 
     function goPaymentMethods() {
         router.push('/paymentMethods')
     }
 
-
     return (
         <div className="px-4">
             <h1 className="text-3xl font-bold my-4 text-center">Subscription Plans</h1>
+            {(subscriptions) ?
+                <>
+                    <h1 className="text-xl font-bold my-4 text-center">Active Subscriptions</h1>
+                    <div>
+                        {subscriptions
+                            .slice() // Copia para no modificar el estado original
+                            .sort((a, b) => (a.creation_date > b.creation_date ? 1 : -1)) // Ordena por creation_date
+                            .map((subscription: Subscription) => (
+                                <div key={subscription.id}> {/* Add key prop here */}
+                                    {subscription.metadata.plan_name}, {subscription.metadata.plan_currency} {(subscription.metadata.plan_amount / 100).toFixed(2)}
+                                </div>
+                            ))}
+                    </div>
+                </>
+                :
+                <div className='text-justify m-4'>You have no current active subscriptions, choose a Plan and subscribe in order to get your Genius CV AI Tokens.</div>
+            }
+
             {(!isLoaded) ?
                 <div className="flex justify-center items-center relative">
                     <div className="absolute z-20 w-5">
@@ -218,7 +268,7 @@ const Buy = ({ auth }) => {
                 </div> :
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mx-4">
-                        {plans
+                        {plans && plans
                             .slice() // Copia para no modificar el estado original
                             .sort((a, b) => (a.short_name > b.short_name ? 1 : -1)) // Ordena por short_name
                             .map((plan: Plan) => (
@@ -282,26 +332,18 @@ const Buy = ({ auth }) => {
                                                 </DropdownMenu>
                                             </Dropdown>
                                         </div>
-
-
                                         <CheckboxGroup
                                             isRequired
                                             description="Please confirm your acceptance of each acknowledgment.                                            "
                                             isInvalid={isInvalid}
                                             label="Ackowledgements"
                                             onValueChange={(value) => {
-                                                setIsInvalid(value.length < 4);
+                                                setIsInvalid(value.length < 2);
                                             }}
-                                        >
-                                            <Checkbox isInvalid={isInvalid} value="authorization">I authorize a recurring monthly charge of <b>{selectedPlan?.currency} {(selectedPlan.amount / 100)}</b> for my <b>{selectedPlan.name}</b> subscription.</Checkbox>
-                                            <Checkbox isInvalid={isInvalid} value="tokens">I acknowledge that the <b>{selectedPlan.name}</b> will issue <b>{benefits[selectedPlan.short_name].main_benefit} Tokens</b> each month for use on this platform, which are not cumulative.</Checkbox>
-                                            <Checkbox isInvalid={isInvalid} value="tyc">I have read and agree to the full Terms & Conditions.</Checkbox>
-                                            <Checkbox isInvalid={isInvalid} value="cancellation">I acknowledge that I can cancel this authorization at any time in the future.</Checkbox>
+                                            className='border'>
+                                            <Checkbox isInvalid={isInvalid} value="tyc">I agree to the full Terms & Conditions.</Checkbox>
+                                            <Checkbox isInvalid={isInvalid} value="authorization">I authorize a recurring monthly charge of <b>{selectedPlan?.currency} {(selectedPlan.amount / 100)}</b> for my <b>{selectedPlan.name}</b> subscription, I acknowledge this subscription will issue <b>{benefits[selectedPlan.short_name].main_benefit} Tokens</b> each month for use on this platform, which are not cumulative and that I can cancel this authorization at any time in the future.</Checkbox>
                                         </CheckboxGroup>
-
-
-
-                                        <div></div >
                                     </ModalBody>
                                     <ModalFooter>
                                         <Button isDisabled={isSubscribing} className="appWhiteOnBlack" onPress={onClose}>
@@ -321,5 +363,5 @@ const Buy = ({ auth }) => {
     );
 };
 
-export default withProtected(Buy);
+export default withProtected(MySubscriptions);
 

@@ -23,7 +23,7 @@ function GeniusNavbar({ auth }) {
     { path: "/spotlight", command: goSpotlight, name: "Spotlight my CV" },
     { path: "/list", command: goList, name: "My CV's List" },
     { path: "/paymentMethods", command: goPaymentMethods, name: "My Payment Methods" },
-    { path: "/buy", command: goBuy, name: "Buy Tokens" },
+    { path: "/subscriptions", command: goSubscriptions, name: "Buy Subscription" },
     { path: "/support", command: goSupport, name: "Help & Support" },
     { path: "/logout", command: logout, name: "Log Out" },
   ];
@@ -37,7 +37,7 @@ function GeniusNavbar({ auth }) {
   function goSpotlight() { router.push('/spotlight') }
   function goList() { router.push('/list') }
   function goPaymentMethods() { router.push('/paymentMethods') }
-  function goBuy() { router.push('/buy') }
+  function goSubscriptions() { router.push('/subscriptions') }
   function goSupport() { router.push('/support') }
 
   return (

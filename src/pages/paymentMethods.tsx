@@ -1,6 +1,5 @@
 import { Button, Input, Modal, ModalContent } from '@nextui-org/react';
 import { getFirestore, doc, getDoc, DocumentReference, collection, updateDoc } from "firebase/firestore";
-
 import CardIconsList from '../components/cardIconsList';
 import React, { useEffect, useState } from 'react';
 import { withProtected } from '../hook/route';
@@ -9,8 +8,6 @@ import SvgCancel from '../components/svgCancel';
 import { useRouter } from 'next/router';
 import SvgStar from '../components/svgStar';
 import { Contact, CreditCard } from '../interfaces/culqi';
-
-
 
 const emptyContact = {
     name: '',
@@ -237,7 +234,6 @@ function PaymentMethods({ auth }) {
         }
     }
 
-
     async function deleteCulqiCard(culqiCardId: string) {
         try {
             console.log("culqiCardId", culqiCardId);
@@ -324,7 +320,6 @@ function PaymentMethods({ auth }) {
         }
 
     }
-
 
     // Input onKeyDown numbers only handler
     const handleNumbersOnly = (e) => {
@@ -432,10 +427,9 @@ function PaymentMethods({ auth }) {
         }
     }
 
-    function goBuy() {
-        router.push('/buy')
+    function goSubscriptions() {
+        router.push('/subscriptions')
     }
-
 
     return (
         <div className='container mx-auto px-6'>
@@ -494,7 +488,7 @@ function PaymentMethods({ auth }) {
                 <Button className='appWhiteOnBlue' onClick={handleAddCard}>Register New Card</Button>
             </div>
             <div className='mt-4'>
-                <Button className='appBlackOnCitrine' onClick={goBuy}>Buy Subscriptions</Button>
+                <Button className='appBlackOnCitrine' onClick={goSubscriptions}>Buy Subscriptions</Button>
             </div>
             <Modal
                 isOpen={showModal}

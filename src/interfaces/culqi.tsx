@@ -18,6 +18,24 @@ export interface Plan {
     slug: string;
 }
 
+export interface Subscription {
+    id: string,
+    status: 1 | 2 | 3 | 4 | 5 | 6,
+    creation_date: number,
+    next_billing_date: number,
+    current_period: number,
+    trial_start: number,
+    trial_end: number,
+    active_card: string,
+    plan: object,
+    periods: object[],
+    metadata: {
+        plan_name:string,
+        plan_currency:string,
+        plan_amount:number,
+    },
+  }
+
 export const getDefaultPlan = (): Plan => ({
     id: '',
     interval_unit_time: 3,
