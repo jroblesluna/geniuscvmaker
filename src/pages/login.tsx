@@ -244,6 +244,9 @@ function Login({ auth }) {
 								Sign in with Google
 							</Button>
 						</div>
+						<div className="m-2 flex justify-center items-center topic-text-white">
+							← Go back to Home
+						</div>
 						<div>
 							{data && (
 								<div className="w-full p-4 text-sm bg-gray-100 rounded-xl opacity-80">
