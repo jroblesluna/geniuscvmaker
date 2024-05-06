@@ -360,7 +360,7 @@ function PaymentMethods({ auth }) {
             } else if (number.toString().match(visaReg)) {
                 return 'visa';
             } else {
-                return 'generic';
+                return 'undefined';
             }
         }
     }

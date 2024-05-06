@@ -4,7 +4,8 @@ import { useRouter } from 'next/router'; // Import Next.js router
 import { toast } from 'react-hot-toast';
 import { withProtected } from '../hook/route'
 
-function Scratch() {
+function Scratch({ auth }) {
+    const { user, setUser, logout } = auth;
     const router = useRouter(); // Initialize Next.js router
     const [answers, setAnswers] = useState({
         passion: "",
@@ -38,7 +39,7 @@ function Scratch() {
         handleTabChange(selectedTab);
     }, [selectedTab]);
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         let emptyField = false;
         let emptyFieldKey = "";
@@ -65,12 +66,33 @@ function Scratch() {
         }
         else {
             // Handle submission logic here
-            toast.success("Your CV is being prepared!");
             setIsProcessing(true);
             setFocusedTextarea("");
+            console.log("Form submitted:", answers);
+
+            const response = await fetch('/api/geniuscvmaker', {
+                method: 'POST',//Don't get confused, this is always POST
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    uid: user.uid,
+                    geniusApp: 'scratch',
+                    geniusBody: answers
+                }),
+            });
+            const data = await response.json();
+            if (data.requestPath != undefined) {
+                toast.success("CV Request: " + data.requestPath.split("/").pop());
+            }
+            else {
+                toast.error("Error creating CV request. Please contact Support.");
+            }
+
+
+
             router.push("/list");
         }
-        console.log("Form submitted:", answers);
     };
 
     const autoFill = () => {
@@ -211,7 +233,7 @@ function Scratch() {
                 <img src='/assets/images/topbar_scratch.jpg' />
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col items-center p-5">
-                        <Tabs 
+                        <Tabs
                             selectedKey={selectedTab}
                             onSelectionChange={handleTabChange}>
                             {tabs.map((item) => (

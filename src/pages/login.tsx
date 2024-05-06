@@ -35,6 +35,32 @@ function Login({ auth }) {
 		}
 	}
 
+
+	async function listCulqiCustomerByEmail(email: string) {
+		try {
+			console.log("email", email);
+			const response = await fetch('/api/culqi', {
+				method: 'POST',//Don't get confused, this is always POST
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					culqiMethod: 'list.customers',
+					culqiBody: {
+						"email": email
+					}
+				}),
+			});
+			const data = await response.json();
+			console.log('Customer data:', data);
+			return (data);
+		} catch (error) {
+			console.error('Error listing customer:', error);
+			return null;
+		}
+	}
+
+
 	async function createCulqiUser(email: string, address: string, address_city: string, country_code: string, first_name: string, last_name: string, phone_number: string) {
 
 		try {
@@ -103,6 +129,15 @@ function Login({ auth }) {
 								}
 								console.log("Creando Culqi Customer");
 								let culqiCustomer = await createCulqiUser(userFromUserCred.email as string, newAddress, newAddressCity, newAddressCountryCode, profile.given_name as string, profile.family_name as string, newPhoneNumber);
+
+								if (culqiCustomer.object === 'error' && culqiCustomer.param === 'email')
+									try {
+										culqiCustomer = (await listCulqiCustomerByEmail(userFromUserCred.email as string)).data[0];
+									}
+									catch (error) {
+										toast.error("Error consultando cliente existente.");
+									}
+
 								console.log("Customer ID", culqiCustomer.id);
 								await setDoc(userRef, {
 									email: userFromUserCred.email,

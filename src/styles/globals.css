@@ -305,10 +305,22 @@ body {
   color: #ffffff;
 }
 
+.topic-text-orange {
+  font-weight: normal;
+  color: #FF4F22;
+}
+
+
+.topic-text-blue {
+  font-weight: normal;
+  color: #1E16C2;
+}
+
 .topic-text-darkgray {
   font-weight: normal;
   color: #1b1f24;
 }
+
 
 .appButtonContainer {
   margin-top: 20px;

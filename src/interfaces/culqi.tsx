@@ -27,7 +27,7 @@ export interface Subscription {
     trial_start: number,
     trial_end: number,
     active_card: string,
-    plan: object,
+    plan: Plan,
     periods: object[],
     metadata: {
         plan_name:string,

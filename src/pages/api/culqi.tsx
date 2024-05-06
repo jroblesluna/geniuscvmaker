@@ -4,23 +4,37 @@ const culqiApiServerUrl = "https://api.culqi.com";
 
 enum KeyType { public, private }
 const culqiMethods = {
-    "list.plans":
-        { invokeMethod: "GET", invokeEndpoint: "/v2/recurrent/plans", apiKeyType: KeyType.private, },
-    "list.cards":
-        { invokeMethod: "GET", invokeEndpoint: "/v2/cards", apiKeyType: KeyType.private, },
+    //CUSTOMERS
     "create.customers":
         { invokeMethod: "POST", invokeEndpoint: "/v2/customers", apiKeyType: KeyType.private, },
-    "create.subscriptions":
-        { invokeMethod: "POST", invokeEndpoint: "/v2/recurrent/subscriptions/create", apiKeyType: KeyType.private, },
     "list.customers":
         { invokeMethod: "GET", invokeEndpoint: "/v2/customers", apiKeyType: KeyType.private, },
+    "get.customers":
+        { invokeMethod: "GET", invokeEndpoint: "/v2/customers/{id}", apiKeyType: KeyType.private, },
+    "delete.customers":
+        { invokeMethod: "DELETE", invokeEndpoint: "/v2/customers/{id}", apiKeyType: KeyType.private, },
+    //TOKENS
     "create.tokens":
         { invokeMethod: "POST", invokeEndpoint: "/v2/tokens", apiKeyType: KeyType.public, },
+    //CARDS
     "create.cards":
         { invokeMethod: "POST", invokeEndpoint: "/v2/cards", apiKeyType: KeyType.private, },
+    "list.cards":
+        { invokeMethod: "GET", invokeEndpoint: "/v2/cards", apiKeyType: KeyType.private, },
     "delete.cards":
         { invokeMethod: "DELETE", invokeEndpoint: "/v2/cards/{id}", apiKeyType: KeyType.private, },
-
+    //PLANS
+    "list.plans":
+        { invokeMethod: "GET", invokeEndpoint: "/v2/recurrent/plans", apiKeyType: KeyType.private, },
+    //SUBSCRIPTIONS
+    "create.subscriptions":
+        { invokeMethod: "POST", invokeEndpoint: "/v2/recurrent/subscriptions/create", apiKeyType: KeyType.private, },
+    "list.subscriptions":
+        { invokeMethod: "GET", invokeEndpoint: "/v2/recurrent/subscriptions", apiKeyType: KeyType.private, },
+    "get.subscriptions":
+        { invokeMethod: "GET", invokeEndpoint: "/v2/recurrent/subscriptions/{id}", apiKeyType: KeyType.private, },
+    "delete.subscriptions":
+        { invokeMethod: "DELETE", invokeEndpoint: "/v2/recurrent/subscriptions/{id}", apiKeyType: KeyType.private, },
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {

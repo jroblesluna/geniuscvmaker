@@ -51,7 +51,7 @@ function GeniusNavbar({ auth }) {
             {menuItems.map((item, index) => (
               <NavbarMenuItem key={`${item.path}-${index}`}>
                 <div
-                  className={`w-fit cursor-pointer topic-title-${(router.pathname === item.path) ? "blue" : (index === menuItems.length - 1) ? "orange" : "darkgray"}`}
+                  className={`w-fit cursor-pointer topic-text-${(router.pathname === item.path) ? "blue" : (index === menuItems.length - 1) ? "orange" : "darkgray"}`}
                   onClick={item.command}
                 >
                   {item.name}
