@@ -10,6 +10,7 @@ import { withPublic } from "../hook/route";
 import SvgLoading from "../components/svgLoading";
 import SvgLogo from "../components/svgLogo";
 import { tosContent, tosTitle } from "../components/tos";
+import Link from "next/link";
 
 
 function Login({ auth }) {
@@ -27,6 +28,8 @@ function Login({ auth }) {
 	const [creationCheckRequested, setCreationCheckRequested] = useState(false);
 	const [userDocRef, setUserDocRef] = useState<DocumentReference | null>(null);
 	const [needsDelay, setNeedsDelay] = useState(false);
+
+	function goHome() { router.push('/') }
 
 	async function updateAbout() {
 		if (userDocRef) {
@@ -244,8 +247,9 @@ function Login({ auth }) {
 								Sign in with Google
 							</Button>
 						</div>
-						<div className="m-2 flex justify-center items-center topic-text-white">
+						<div onClick={goHome} className="m-2 flex justify-center items-center topic-text-white cursor-pointer">
 							← Go back to Home
+							
 						</div>
 						<div>
 							{data && (
