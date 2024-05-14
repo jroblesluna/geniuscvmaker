@@ -249,7 +249,6 @@ function Login({ auth }) {
 						</div>
 						<div onClick={goHome} className="m-2 flex justify-center items-center topic-text-white cursor-pointer">
 							← Go back to Home
-							
 						</div>
 						<div>
 							{data && (

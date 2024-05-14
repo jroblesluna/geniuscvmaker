@@ -11,7 +11,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             let newRequest = {
                 createdAt: serverTimestamp(),
                 geniusApp: req.body.geniusApp,
-                geniusBody: req.body.geniusBody
+                geniusBody: req.body.geniusBody,
+                status: req.body.status,
             }
             let requestDoc = await addDoc(cvRequestsCollectionRef, newRequest);
             res.status(200).json({ requestPath: requestDoc.path });

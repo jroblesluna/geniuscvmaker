@@ -21,7 +21,7 @@ function GeniusNavbar({ auth }) {
     { path: "/craft", command: goCraft, name: "Craft my CV" },
     { path: "/optimize", command: goOptimize, name: "Optimize my CV" },
     { path: "/spotlight", command: goSpotlight, name: "Spotlight my CV" },
-    { path: "/list", command: goList, name: "My CV's List" },
+    { path: "/cvList", command: goList, name: "My CV's List" },
     { path: "/paymentMethods", command: goPaymentMethods, name: "My Payment Methods" },
     { path: "/subscriptions", command: goSubscriptions, name: "Buy Subscription" },
     { path: "/support", command: goSupport, name: "Help & Support" },
@@ -35,7 +35,7 @@ function GeniusNavbar({ auth }) {
   function goCraft() { router.push('/craft') }
   function goOptimize() { router.push('/optimize') }
   function goSpotlight() { router.push('/spotlight') }
-  function goList() { router.push('/list') }
+  function goList() { router.push('/cvList') }
   function goPaymentMethods() { router.push('/paymentMethods') }
   function goSubscriptions() { router.push('/subscriptions') }
   function goSupport() { router.push('/support') }

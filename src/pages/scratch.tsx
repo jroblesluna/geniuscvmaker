@@ -78,12 +78,13 @@ function Scratch({ auth }) {
                 body: JSON.stringify({
                     uid: user.uid,
                     geniusApp: 'scratch',
-                    geniusBody: answers
+                    geniusBody: answers,
+                    status: 'writing',
                 }),
             });
             const data = await response.json();
             if (data.requestPath != undefined) {
-                toast.success("CV Request: " + data.requestPath.split("/").pop());
+                toast.success("You created a new CV Request: " + data.requestPath.split("/").pop());
             }
             else {
                 toast.error("Error creating CV request. Please contact Support.");
@@ -91,7 +92,7 @@ function Scratch({ auth }) {
 
 
 
-            router.push("/list");
+            router.push("/cvList");
         }
     };
 

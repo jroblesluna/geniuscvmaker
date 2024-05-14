@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router'; // Import Next.js router
 import { withPublic } from "../hook/route";
+
 function Index({ auth }) {
     const router = useRouter(); // Initialize Next.js router
 
