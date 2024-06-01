@@ -105,7 +105,7 @@ function Scratch({ auth }) {
             router.push("/cvList");
         }
     };
-
+/* 
     const autoFill = () => {
         tabs.forEach(tab => {
             tab.questions.forEach(question => {
@@ -116,6 +116,17 @@ function Scratch({ auth }) {
             });
         });
     };
+
+    const clearFields = () => {
+        tabs.forEach(tab => {
+            tab.questions.forEach(question => {
+                setAnswers(prevAnswers => ({
+                    ...prevAnswers,
+                    [question.key]: ""
+                }));
+            });
+        });
+    }; */
 
 
     const tabs = [
@@ -342,9 +353,10 @@ function Scratch({ auth }) {
                                 <Tab key={item.key} title={item.label} className='w-full'>
                                     <Card>
                                         <CardBody >
+                                            <div className="flex flex-col md:flex-row gap-4">
                                             {item.questions.map((question) => (
-                                                <div key={`div.${question.key}`} className=' m-1 rounded-xl'>
-                                                    <div className='p-2 topic-title-orange text-start text-md'>
+                                                <div key={`div.${question.key}`} className='w-full m-1 rounded-xl'>
+                                                    <div className='topic-title-orange text-start text-md'>
                                                         {question.question}
                                                     </div>
                                                     <Textarea
@@ -355,7 +367,6 @@ function Scratch({ auth }) {
                                                         labelPlacement='outside'
                                                         description={question.description}
                                                         placeholder={`Example: ${question.example}`}
-                                                        className="px-[3vw]"
                                                         autoFocus={focusedTextarea === question.key}
                                                         value={answers[question.key]}
                                                         onChange={handleTextareaChange(question.key)}
@@ -366,15 +377,18 @@ function Scratch({ auth }) {
                                                     />
                                                 </div>
                                             ))}
+                                            </div>
                                             <div className='w-full grid grid-cols-2'>
                                                 <div className='w-full text-start'>
-                                                    <Button isDisabled={isProcessing} onClick={(item.key === "tab.you") ? autoFill : goPrev} className="appBlackOnCitrine m-4">
-                                                        {(item.key === "tab.you") ? 'Autofill' : 'Previous'}
+                                                    {(item.key!="tab.you")?
+                                                    <Button isDisabled={isProcessing} onClick={goPrev} className="appBlackOnCitrine m-4">
+                                                        Previous
                                                     </Button>
+                                                    :<></>}
                                                 </div>
                                                 <div className='w-full text-end'>
                                                     <Button isLoading={isProcessing} onClick={(item.key === "tab.finish") ? handleSubmit : goNext} className="appBlackOnCitrine m-4">
-                                                        {(item.key === "tab.finish") ? 'Create my CV' : 'Next'}
+                                                        {(item.key === "tab.finish") ? 'Create CV' : 'Next'}
                                                     </Button>
                                                 </div>
                                             </div>
