@@ -5,15 +5,36 @@ import { useRouter } from 'next/router';
 import { toast } from 'react-hot-toast';
 import { withProtected } from '../hook/route'
 
+interface CvCraft {
+    id?: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    telephoneNumber: string;
+    description: string;
+    facebook: string;
+    instagram: string;
+    linkedin: string;
+    tiktok: string;
+    youtube: string;
+    github: string;
+    workExperiences: any[];
+    skills: any[];
+    languages: any[];
+    licenses: any[];
+    certifications: any[];
+    personalReferences: any[];
+}
+
 function Craft({ auth }) {
     const { user } = auth;
-    const [cvCrafts, setCvCrafts] = useState([]);
-    const [currentCv, setCurrentCv] = useState(null);
+    const [cvCrafts, setCvCrafts] = useState<CvCraft[]>([]);
+    const [currentCv, setCurrentCv] = useState<CvCraft | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const router = useRouter();
 
-    const initialCvState = {
+    const initialCvState: CvCraft = {
         firstName: "",
         lastName: "",
         email: "",
@@ -37,16 +58,16 @@ function Craft({ auth }) {
         const firestore = getFirestore();
         const cvCraftsRef = collection(doc(firestore, "users", user.uid), "cvCrafts");
         const cvCraftsSnapshot = await getDocs(cvCraftsRef);
-        const cvCraftsList = cvCraftsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const cvCraftsList = cvCraftsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CvCraft));
         setCvCrafts(cvCraftsList);
     };
 
     const handleInputChange = (event) => {
         const { name, value } = event.target;
-        setCurrentCv({ ...currentCv, [name]: value });
+        setCurrentCv(currentCv => currentCv ? { ...currentCv, [name]: value } : null);
     };
 
-    const handleModalOpen = (cv = initialCvState) => {
+    const handleModalOpen = (cv: CvCraft = initialCvState) => {
         setCurrentCv(cv);
         setIsEditing(!!cv.id);
         setIsModalOpen(true);
@@ -62,9 +83,10 @@ function Craft({ auth }) {
         const cvCraftsRef = collection(doc(firestore, "users", user.uid), "cvCrafts");
 
         try {
-            if (isEditing) {
+            if (isEditing && currentCv?.id) {
                 const cvDocRef = doc(cvCraftsRef, currentCv.id);
-                await updateDoc(cvDocRef, currentCv);
+                const { id, ...cvData } = currentCv;
+                await updateDoc(cvDocRef, cvData);
                 toast.success("CV updated successfully");
             } else {
                 await addDoc(cvCraftsRef, currentCv);
@@ -77,7 +99,7 @@ function Craft({ auth }) {
         }
     };
 
-    const handleDelete = async (cvId) => {
+    const handleDelete = async (cvId: string) => {
         const firestore = getFirestore();
         const cvCraftsRef = collection(doc(firestore, "users", user.uid), "cvCrafts");
 
@@ -119,7 +141,7 @@ function Craft({ auth }) {
                         </CardBody>
                         <CardFooter>
                             <Button onClick={() => handleModalOpen(cv)}>Edit</Button>
-                            <Button onClick={() => handleDelete(cv.id)} color="error">Delete</Button>
+                            <Button onClick={() => handleDelete(cv.id!)} color="danger">Delete</Button>
                         </CardFooter>
                     </Card>
                 ))}
