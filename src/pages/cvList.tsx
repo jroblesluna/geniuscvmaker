@@ -59,6 +59,10 @@ function cvList({ auth }) {
 
     fetchCVs();
 
+    const interval = setInterval(() => {
+      fetchCVs();
+    }, 60000); // Fetch every minute
+
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth < 768);
     };
@@ -66,6 +70,7 @@ function cvList({ auth }) {
     window.addEventListener('resize', handleResize);
 
     return () => {
+      clearInterval(interval);
       window.removeEventListener('resize', handleResize);
     };
   }, []);
