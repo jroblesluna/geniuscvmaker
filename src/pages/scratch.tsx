@@ -1,11 +1,13 @@
+import { getFirestore, doc, getDoc, DocumentData } from "firebase/firestore";
 import React, { useState, useEffect } from 'react'
-import { Tabs, Tab, Card, CardBody, Button, Textarea } from "@nextui-org/react";
+import { Tabs, Tab, Card, CardBody, Button, Textarea, Input } from "@nextui-org/react";
 import { useRouter } from 'next/router'; // Import Next.js router
 import { toast } from 'react-hot-toast';
 import { withProtected } from '../hook/route'
 
 function Scratch({ auth }) {
     const { user, setUser, logout } = auth;
+    const [userData, setUserData] = useState<DocumentData | null>(null);
     const router = useRouter(); // Initialize Next.js router
     const [answers, setAnswers] = useState({
         passion: "",
@@ -19,7 +21,7 @@ function Scratch({ auth }) {
         envision: ""
     });
 
-    const [selectedTab, setSelectedTab] = useState("you");
+    const [selectedTab, setSelectedTab] = useState("tab.you");
     const [focusedTextarea, setFocusedTextarea] = useState("passion");
     const [isProcessing, setIsProcessing] = useState(false);
 
@@ -38,6 +40,8 @@ function Scratch({ auth }) {
     useEffect(() => {
         handleTabChange(selectedTab);
     }, [selectedTab]);
+
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -69,6 +73,7 @@ function Scratch({ auth }) {
             setIsProcessing(true);
             setFocusedTextarea("");
             console.log("Form submitted:", answers);
+            console.log("userData", userData);
 
             const response = await fetch('/api/geniuscvmaker', {
                 method: 'POST',//Don't get confused, this is always POST
@@ -77,6 +82,11 @@ function Scratch({ auth }) {
                 },
                 body: JSON.stringify({
                     uid: user.uid,
+                    firstName: userData?.firstName,
+                    lastName: userData?.lastName,
+                    email: userData?.email,
+                    telephoneNumber: userData?.telephoneNumber,
+                    about: userData?.about,
                     geniusApp: 'scratch',
                     geniusBody: answers,
                     status: 'writing',
@@ -228,12 +238,103 @@ function Scratch({ auth }) {
         );
     }
 
+
+    async function fetchUserProfile() {
+        console.log("fetchUserProfile");
+        try {
+            const firestore = getFirestore();
+            const userDocRef = doc(firestore, "users", user.uid);
+            const userDocSnapshot = await getDoc(userDocRef);
+            if (userDocSnapshot.exists()) {
+                const userData = userDocSnapshot.data();
+                setUserData(userData);
+                return true;
+            } else {
+                console.log("The user document doesn't exist");
+                return false;
+            }
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            return false;
+        }
+    };
+
+    useEffect(() => {
+        fetchUserProfile();
+    }, [])
+
+    const handleInputChange = (event) => {
+        const { name, value } = event.target;
+        setUserData((prevUserData) => ({
+            ...prevUserData,
+            [name]: value,
+        }));
+    };
+
     return (
         <>
-            <div className='dark'>
-                <img src='/assets/images/topbar_scratch.jpg' />
+            <div className="container mx-auto px-4 py-4 ">
+
+                <div className="text-center mb-8">
+                    <h1 className="text-3xl font-bold mb-4">Create a CV from Scratch</h1>
+                </div>
+                <div className="flex flex-col items-center mb-4">
+                    <div className="mb-4">Please review the following information, it's going to be used for generate your CV.</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full md:w-auto">
+                        <Input
+                            type="text"
+                            name="firstName"
+                            label="First Name"
+                            isRequired={true}
+                            value={userData?.firstName}
+                            onChange={handleInputChange}
+                            className="w-full md:w-64"
+                            variant="underlined"
+                        />
+                        <Input
+                            type="text"
+                            name="lastName"
+                            label="Last Name"
+                            isRequired={true}
+                            value={userData?.lastName}
+                            onChange={handleInputChange}
+                            className="w-full md:w-64"
+                            variant="underlined"
+                        />
+                        <Input
+                            type="text"
+                            name="email"
+                            label="Email"
+                            isRequired={true}
+                            value={userData?.email}
+                            onChange={handleInputChange}
+                            className="w-full md:w-64"
+                            variant="underlined"
+                        />
+                        <Input
+                            type="text"
+                            name="telephoneNumber"
+                            label="Phone"
+                            isRequired={true}
+                            value={userData?.telephoneNumber}
+                            onChange={handleInputChange}
+                            className="w-full md:w-64"
+                            variant="underlined"
+                        />
+                        <Textarea
+                            name="about"
+                            label="About"
+                            isRequired={true}
+                            value={userData?.about}
+                            onChange={handleInputChange}
+                            className="w-full col-span-2"
+                            variant="underlined" />
+                    </div>
+
+                </div>
+
                 <form onSubmit={handleSubmit}>
-                    <div className="flex flex-col items-center p-5">
+                    <div className="flex flex-col items-center">
                         <Tabs
                             selectedKey={selectedTab}
                             onSelectionChange={handleTabChange}>
@@ -242,8 +343,8 @@ function Scratch({ auth }) {
                                     <Card>
                                         <CardBody >
                                             {item.questions.map((question) => (
-                                                <div key={`div.${question.key}`} className='bg-gray-800 m-1 rounded-xl'>
-                                                    <div className='p-2 topic-title-citrine text-start text-md'>
+                                                <div key={`div.${question.key}`} className=' m-1 rounded-xl'>
+                                                    <div className='p-2 topic-title-orange text-start text-md'>
                                                         {question.question}
                                                     </div>
                                                     <Textarea

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link, Button, menuItem } from "@nextui-org/react";
 import { useRouter } from 'next/router'; // Import Next.js router
+
 import SvgLogo from "./svgLogo";
 import SvgHome from './svgHome';
 import SvgApps from './svgApps';
@@ -12,6 +13,7 @@ function GeniusNavbar({ auth }) {
   const router = useRouter(); // Initialize Next.js router
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { logout } = auth;
+
 
   const menuItems = [
     { path: "/", command: goHome, name: "Home" },
@@ -43,7 +45,7 @@ function GeniusNavbar({ auth }) {
   return (
     <>
       <Navbar onMenuOpenChange={setIsMenuOpen} className='bg-gray-200' maxWidth='full'>
-        <NavbarContent className='justify-start'>
+        <NavbarContent className='justify-start p-0'>
           <NavbarMenuToggle
             aria-label={isMenuOpen ? "Close menu" : "Open menu"}
             style={{ color: "#FF4F22" }} />
@@ -60,7 +62,7 @@ function GeniusNavbar({ auth }) {
             ))}
           </NavbarMenu>
         </NavbarContent>
-        <NavbarContent className="justify-center gap-[2vw]">
+        <NavbarContent className="justify-center gap-[2vw] p-0">
           <NavbarItem>
             <button onClick={goHome}>
               <div className='flex flex-col items-center'>
@@ -94,7 +96,7 @@ function GeniusNavbar({ auth }) {
             </button>
           </NavbarItem>
         </NavbarContent>
-        <NavbarContent className='justify-end'>
+        <NavbarContent className='justify-end p-0'>
           <NavbarBrand className="flex flex-col justify-center items-end h-full">
             <div className='flex flex-col gap-1 items-end'>
               <div className='flex flex-row'>

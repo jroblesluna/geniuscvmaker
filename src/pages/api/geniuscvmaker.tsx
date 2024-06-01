@@ -10,11 +10,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const cvRequestsCollectionRef = collection(userDocRef, 'cvRequests');
             let newRequest = {
                 createdAt: serverTimestamp(),
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                email: req.body.email,
+                telephoneNumber: req.body.telephoneNumber,
+                about: req.body.about,
                 geniusApp: req.body.geniusApp,
                 geniusBody: req.body.geniusBody,
                 status: req.body.status,
             }
             let requestDoc = await addDoc(cvRequestsCollectionRef, newRequest);
+            console.log("PATH", requestDoc.path);
+
+            const tasksCollectionRef = collection(firestore, 'tasks');
+            const newTask = {
+                requestPath: requestDoc.path,
+                status: 0,
+            };
+
+            await addDoc(tasksCollectionRef, newTask);
+
             res.status(200).json({ requestPath: requestDoc.path });
         } else {
             res.status(500).json({ error: 'Error getting user.' });

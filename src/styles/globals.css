@@ -233,10 +233,35 @@
   /* Add additional font formats (e.g., woff, ttf) for better browser compatibility */
 }
 
+
 body {
   font-family: 'TT Hazelnuts';
-  background-color: #ffffff;
-  color: #1b1f24;
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 40px;
+}
+
+h1 {
+  margin-block-start: 21.44px;
+  margin-block-end: 21.44px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+h2 {
+  margin-top: 13.28px;
+  margin-bottom: 13.28px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+h3 {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  font-size: 18.72px;
+  font-weight: 700;
 }
 
 .bg-home-image {
@@ -354,6 +379,11 @@ body {
   font-weight: bold;
 }
 
+.appWhiteOnOrange:hover {
+  background-color: #ffffff;
+  color: #FF4F22;
+}
+
 .appWhiteOnBlack {
   background-color: #1b1f24;
   color: #ffffff;
@@ -380,7 +410,7 @@ body {
   font-family: 'Credit-Card';
   color: transparent;
   text-shadow:
-  -1px -1px 1px rgba(255, 255, 255, 0.5),
-  0px 0px 1px rgba(255, 255, 255, 0.8),
-  1.5px 1.5px 1px rgba(0, 0, 0, 0.9);
+    -1px -1px 1px rgba(255, 255, 255, 0.5),
+    0px 0px 1px rgba(255, 255, 255, 0.8),
+    1.5px 1.5px 1px rgba(0, 0, 0, 0.9);
 }
