@@ -17,4 +17,5 @@ npm install
 sed -i 's/showDefaultOption?: string;/showDefaultOption?: boolean;/g' node_modules/react-country-region-selector/index.d.ts
 npm run build
 pm2 start npm --name geniuscvmaker.com -- start
+pm2 start npm --name "cronTask" --cron "* * * * *" --no-autorestart --instances 1 -- run cronTask
 pm2 save
