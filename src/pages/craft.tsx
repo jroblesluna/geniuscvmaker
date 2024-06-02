@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { getFirestore, doc, collection, getDocs, addDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { Button, Card, CardHeader, CardBody, CardFooter, Input, Textarea, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react";
-import { useRouter } from 'next/router'; 
+import { useRouter } from 'next/router';
 import { toast } from 'react-hot-toast';
 import { withProtected } from '../hook/route'
 
@@ -153,6 +153,37 @@ function Craft({ auth }) {
                         <h2>{isEditing ? "Edit CV" : "Create New CV"}</h2>
                     </ModalHeader>
                     <ModalBody>
+
+                        <div className='flex flex-row'>
+                            <div className='flex flex-col'>
+                                <div className='flex flex-row'>
+                                    <div className="border border-red-500">First Name</div>
+                                    <div className="border border-red-500">Last Name</div>
+                                </div>
+                                <div className='flex flex-row'>
+                                    <div className="border border-red-500">Email</div>
+                                    <div className="border border-red-500">Phone</div>
+                                </div>
+                            </div>
+                            <div className='flex flex-col'>
+                                <div className="border border-red-500">Description</div>
+                            </div>
+                            <div className='flex flex-col'>
+                                <div className='flex flex-row'>
+                                    <div className="border border-red-500">facebook</div>
+                                    <div className="border border-red-500">instagram</div>
+                                </div>
+                                <div className='flex flex-row'>
+                                    <div className="border border-red-500">linkedin</div>
+                                    <div className="border border-red-500">tiktok</div>
+                                </div>
+                                <div className='flex flex-row'>
+                                    <div className="border border-red-500">youtube</div>
+                                    <div className="border border-red-500">github</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <Input
                             type="text"
                             name="firstName"
