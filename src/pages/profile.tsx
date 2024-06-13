@@ -11,6 +11,15 @@ import { CountryDropdown, RegionDropdown, CountryRegionData } from 'react-countr
 import { toast } from 'react-hot-toast';
 import { withProtected } from '../hook/route';
 
+const socialLinks = [
+    { name: 'facebook', baseUrl: 'https://facebook.com/' },
+    { name: 'instagram', baseUrl: 'https://instagram.com/' },
+    { name: 'linkedin', baseUrl: 'https://linkedin.com/in/' },
+    { name: 'tiktok', baseUrl: 'https://tiktok.com/@' },
+    { name: 'youtube', baseUrl: 'https://youtube.com/@' },
+    { name: 'github', baseUrl: 'https://github.com/' },
+];
+
 function Profile({ auth }) {
     const { user, setUser, logout } = auth;
     const [userData, setUserData] = useState<DocumentData | null>(null);
@@ -160,6 +169,7 @@ function Profile({ auth }) {
                     {editableFields[field] ? (
                         <div className="flex items-center">
                             {(() => {
+                                console.log("switch field",field);
                                 switch (field) {
                                     case "telephoneNumber":
                                         return (
@@ -184,6 +194,29 @@ function Profile({ auth }) {
                                                 className="w-full mr-2"
                                                 variant="flat" />
                                         );
+                                    case "facebook":
+                                    case "instagram":
+                                    case "linkedin":
+                                    case "tiktok":
+                                    case "youtube":
+                                    case "github":
+                                        return (
+                                            <Input
+                                                type="text"
+                                                ref={(element) => { if (element) { inputRefs.current[field] = element; } }}
+                                                autoFocus
+                                                value={userData[field]}
+                                                onChange={(e) => handleChange(e, field)}
+                                                onKeyDown={(e) => handleKeyDown(e, field)}
+                                                onFocus={handleFocus}
+                                                startContent={
+                                                    <>
+                                                        <img src={`/assets/svg/${field}.svg`} width={20} className='mr-1' />
+                                                        <span className="text-default-400 text-sm">{socialLinks.find(link => link.name === field)?.baseUrl || null}</span>
+                                                    </>
+                                                }
+                                                className="w-full mr-2" />
+                                        );
                                     default:
                                         return (
                                             <Input
@@ -202,6 +235,26 @@ function Profile({ auth }) {
                             <button onClick={() => handleCancelEdit(field)} className="text-red-500"><SvgCancel /></button>
                         </div>) :
                         (<div className="flex items-center">
+                            {
+                                (
+                                    () => {
+                                        switch (field) {
+                                            case "facebook":
+                                            case "instagram":
+                                            case "linkedin":
+                                            case "tiktok":
+                                            case "youtube":
+                                            case "github":
+                                                return (
+                                                    <>
+                                                        <img src={`/assets/svg/${field}.svg`} width={20} className='ml-3 my-2.5 mr-1' />
+                                                        <span className="text-default-400 text-small">{socialLinks.find(link => link.name === field)?.baseUrl || null}</span>
+                                                    </>
+                                                );
+                                        }
+                                    }
+                                )()
+                            }
                             <span className="mr-4 py-2 w-full">{userData[field]}</span>
                             <button onClick={() => handleEditField(field)} className="topic-title-blue"><SvgEdit /></button>
                         </div>)}
@@ -303,6 +356,12 @@ function Profile({ auth }) {
                                     </div>
                                 )}
                             </div>
+                            {renderEditableField('facebook', 'Facebook')}
+                            {renderEditableField('instagram', 'Instagram')}
+                            {renderEditableField('linkedin', 'LinkedIn')}
+                            {renderEditableField('tiktok', 'TikTok')}
+                            {renderEditableField('youtube', 'Youtube')}
+                            {renderEditableField('github', 'Github')}
                             <div className="mb-4 text-xs text-center">
                                 <p className="font-light">Google UID: <span>{user.uid}</span></p>
                                 <p className="font-light">Culqi ID: <span>{userData["culqiCustomerId"]}</span></p>

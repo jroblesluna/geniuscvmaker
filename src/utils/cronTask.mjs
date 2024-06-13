@@ -23,7 +23,7 @@ const scratchQuestions = {
   passion: 'What are you passionate about?',
   activities: 'Have you been involved in any extracurricular activities, clubs, or projects outside of your academic or professional pursuits?',
   references: 'Do you have personal contacts who can reference you?',
-  studies: 'What and where did you study?',
+  studies: 'What, when``` and where did you study?',
   experience: 'Can you describe any internships, part-time jobs, or volunteer experiences you\'ve had?',
   languages: 'What languages do you speak?',
   envision: 'How do you envision your career path evolving in the next few years?',

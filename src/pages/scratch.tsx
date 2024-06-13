@@ -5,6 +5,15 @@ import { useRouter } from 'next/router'; // Import Next.js router
 import { toast } from 'react-hot-toast';
 import { withProtected } from '../hook/route'
 
+const socialLinks = [
+    { name: 'facebook', baseUrl: 'https://facebook.com/' },
+    { name: 'instagram', baseUrl: 'https://instagram.com/' },
+    { name: 'linkedin', baseUrl: 'https://linkedin.com/in/' },
+    { name: 'tiktok', baseUrl: 'https://tiktok.com/@' },
+    { name: 'youtube', baseUrl: 'https://youtube.com/@' },
+    { name: 'github', baseUrl: 'https://github.com/' },
+];
+
 function Scratch({ auth }) {
     const { user, setUser, logout } = auth;
     const [userData, setUserData] = useState<DocumentData | null>(null);
@@ -87,6 +96,12 @@ function Scratch({ auth }) {
                     email: userData?.email,
                     telephoneNumber: userData?.telephoneNumber,
                     about: userData?.about,
+                    facebook: userData?.facebook,
+                    instagram: userData?.instagram,
+                    linkedin: userData?.linkedin,
+                    tiktok: userData?.tiktok,
+                    youtube: userData?.youtube,
+                    github: userData?.github,
                     geniusApp: 'scratch',
                     geniusBody: answers,
                     status: 'writing',
@@ -105,29 +120,6 @@ function Scratch({ auth }) {
             router.push("/cvList");
         }
     };
-/* 
-    const autoFill = () => {
-        tabs.forEach(tab => {
-            tab.questions.forEach(question => {
-                setAnswers(prevAnswers => ({
-                    ...prevAnswers,
-                    [question.key]: question.example
-                }));
-            });
-        });
-    };
-
-    const clearFields = () => {
-        tabs.forEach(tab => {
-            tab.questions.forEach(question => {
-                setAnswers(prevAnswers => ({
-                    ...prevAnswers,
-                    [question.key]: ""
-                }));
-            });
-        });
-    }; */
-
 
     const tabs = [
         {
@@ -163,7 +155,7 @@ function Scratch({ auth }) {
             questions: [
                 {
                     key: "studies",
-                    question: "What and where did you study?",
+                    question: "What, when and where did you study?",
                     label: "Your University, School and other Institutions you were studying.",
                     example: "I'm currently studying Marketing and Comunications at UPC University since January 2021, I've also studied at Lima Fashion Academy last year 2023 from January to August and I finished High School at Veritas High School in 2020.",
                     description: "Your academic background will be hightlighted in the CV."
@@ -287,65 +279,102 @@ function Scratch({ auth }) {
             <div className="container mx-auto px-4 py-4 ">
 
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold mb-4">Create a CV from Scratch</h1>
+                    <h1 className="text-3xl font-bold">Create a CV from Scratch</h1>
                 </div>
-                <div className="flex flex-col items-center mb-4">
-                    <div className="mb-4">Please review the following information, it's going to be used for generate your CV.</div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full md:w-auto">
-                        <Input
-                            type="text"
-                            name="firstName"
-                            label="First Name"
-                            isRequired={true}
-                            value={userData?.firstName}
-                            onChange={handleInputChange}
-                            className="w-full md:w-64"
-                            variant="underlined"
-                        />
-                        <Input
-                            type="text"
-                            name="lastName"
-                            label="Last Name"
-                            isRequired={true}
-                            value={userData?.lastName}
-                            onChange={handleInputChange}
-                            className="w-full md:w-64"
-                            variant="underlined"
-                        />
-                        <Input
-                            type="text"
-                            name="email"
-                            label="Email"
-                            isRequired={true}
-                            value={userData?.email}
-                            onChange={handleInputChange}
-                            className="w-full md:w-64"
-                            variant="underlined"
-                        />
-                        <Input
-                            type="text"
-                            name="telephoneNumber"
-                            label="Phone"
-                            isRequired={true}
-                            value={userData?.telephoneNumber}
-                            onChange={handleInputChange}
-                            className="w-full md:w-64"
-                            variant="underlined"
-                        />
-                        <Textarea
-                            name="about"
-                            label="About"
-                            isRequired={true}
-                            value={userData?.about}
-                            onChange={handleInputChange}
-                            className="w-full col-span-2"
-                            variant="underlined" />
-                    </div>
 
+                <div className="flex flex-col items-center">
+                    <div className="my-4 topic-title-blue">Step 1: Please review the following information, it's going to be used for generate your CV.</div>
+
+                    <div className="flex flex-col md:flex-row gap-4">
+
+                        <div className='w-full m-1 rounded-xl'>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full md:w-auto">
+
+                                <Input
+                                    type="text"
+                                    name="firstName"
+                                    label="First Name"
+                                    isRequired={true}
+                                    value={userData?.firstName}
+                                    onChange={handleInputChange}
+                                    className="w-full"
+                                    variant="underlined"
+                                />
+                                <Input
+                                    type="text"
+                                    name="lastName"
+                                    label="Last Name"
+                                    isRequired={true}
+                                    value={userData?.lastName}
+                                    onChange={handleInputChange}
+                                    className="w-full"
+                                    variant="underlined"
+                                />
+                                <Input
+                                    type="text"
+                                    name="email"
+                                    label="Email"
+                                    isRequired={true}
+                                    value={userData?.email}
+                                    onChange={handleInputChange}
+                                    className="w-full md:col-span-2"
+                                    variant="underlined"
+                                />
+                                <Input
+                                    type="text"
+                                    name="telephoneNumber"
+                                    label="Phone"
+                                    isRequired={true}
+                                    value={userData?.telephoneNumber}
+                                    onChange={handleInputChange}
+                                    className="w-full md:col-span-2"
+                                    variant="underlined"
+                                />
+
+                            </div>
+                        </div>
+                        <div className='w-full m-1 rounded-xl'>
+                            <Textarea
+                                name="about"
+                                label="About"
+                                isRequired={true}
+                                value={userData?.about}
+                                onChange={handleInputChange}
+                                className="w-full col-span-2"
+                                variant="underlined" />
+                        </div>
+                        <div className='w-full m-1 rounded-xl'>
+                            {socialLinks.map(({ name, baseUrl }) => (
+                                <Input
+                                    type="text"
+                                    name={name}
+                                    isRequired={false}
+                                    value={userData?.[name]}
+                                    onChange={handleInputChange}
+                                    startContent={
+                                        <>
+                                            <img src={`/assets/svg/${name}.svg`} width={20} className='mr-1' />
+                                            <span className="text-default-400 text-sm">{baseUrl}</span>
+                                        </>
+                                    }
+                                    className="w-full"
+                                    variant="underlined" />
+
+                            ))}
+                        </div>
+                    </div>
                 </div>
+
+
+
+
+
+
 
                 <form onSubmit={handleSubmit}>
                     <div className="flex flex-col items-center">
+                    <div className="my-4 topic-title-blue">Step Two: Please answer the following questions. Be honest and as detailed as you can. The more information you provide, the better our AI will be able to structure your information.</div>
+
                         <Tabs
                             selectedKey={selectedTab}
                             onSelectionChange={handleTabChange}>
@@ -354,37 +383,37 @@ function Scratch({ auth }) {
                                     <Card>
                                         <CardBody >
                                             <div className="flex flex-col md:flex-row gap-4">
-                                            {item.questions.map((question) => (
-                                                <div key={`div.${question.key}`} className='w-full m-1 rounded-xl'>
-                                                    <div className='topic-title-orange text-start text-md'>
-                                                        {question.question}
+                                                {item.questions.map((question) => (
+                                                    <div key={`div.${question.key}`} className='w-full m-1 rounded-xl'>
+                                                        <div className='topic-title-orange text-start text-md'>
+                                                            {question.question}
+                                                        </div>
+                                                        <Textarea
+                                                            isRequired
+                                                            isDisabled={isProcessing}
+                                                            key={question.key}
+                                                            label={question.label}
+                                                            labelPlacement='outside'
+                                                            description={question.description}
+                                                            placeholder={`Example: ${question.example}`}
+                                                            autoFocus={focusedTextarea === question.key}
+                                                            value={answers[question.key]}
+                                                            onChange={handleTextareaChange(question.key)}
+                                                            classNames={{
+                                                                input: "resize-y text-sm font-light",
+                                                                description: "italic text-end"
+                                                            }}
+                                                        />
                                                     </div>
-                                                    <Textarea
-                                                        isRequired
-                                                        isDisabled={isProcessing}
-                                                        key={question.key}
-                                                        label={question.label}
-                                                        labelPlacement='outside'
-                                                        description={question.description}
-                                                        placeholder={`Example: ${question.example}`}
-                                                        autoFocus={focusedTextarea === question.key}
-                                                        value={answers[question.key]}
-                                                        onChange={handleTextareaChange(question.key)}
-                                                        classNames={{
-                                                            input: "resize-y text-sm font-light",
-                                                            description: "italic text-end"
-                                                        }}
-                                                    />
-                                                </div>
-                                            ))}
+                                                ))}
                                             </div>
                                             <div className='w-full grid grid-cols-2'>
                                                 <div className='w-full text-start'>
-                                                    {(item.key!="tab.you")?
-                                                    <Button isDisabled={isProcessing} onClick={goPrev} className="appBlackOnCitrine m-4">
-                                                        Previous
-                                                    </Button>
-                                                    :<></>}
+                                                    {(item.key != "tab.you") ?
+                                                        <Button isDisabled={isProcessing} onClick={goPrev} className="appBlackOnCitrine m-4">
+                                                            Previous
+                                                        </Button>
+                                                        : <></>}
                                                 </div>
                                                 <div className='w-full text-end'>
                                                     <Button isLoading={isProcessing} onClick={(item.key === "tab.finish") ? handleSubmit : goNext} className="appBlackOnCitrine m-4">
