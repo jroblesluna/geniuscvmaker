@@ -79,6 +79,7 @@ const degrees = [
     { key: "master", label: "Master's (MSc)" },
     { key: "phd", label: "Post-Doctorate (Ph.D.)" },
     { key: "professional", label: "Professional (M.D., J.D.)" },
+    { key: "other", label: "Other" },
 ]
 
 const languages = [
@@ -487,6 +488,12 @@ function Craft({ auth }) {
                     email: userData?.email,
                     telephoneNumber: userData?.telephoneNumber,
                     about: userData?.about,
+                    facebook: userData?.facebook,
+                    instagram: userData?.instagram,
+                    linkedin: userData?.linkedin,
+                    tiktok: userData?.tiktok,
+                    youtube: userData?.youtube,
+                    github: userData?.github,
                 }));
 
                 //setUserData(userData);
@@ -506,34 +513,51 @@ function Craft({ auth }) {
 
         // Handle submission logic here
         setIsProcessing(true);
-        
-        console.log(cv);
 
-        const response = await fetch('/api/geniuscvmaker', {
-            method: 'POST',//Don't get confused, this is always POST
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                uid: user.uid,
-                firstName: cv.firstName,
-                lastName: cv.lastName,
-                email: cv.email,
-                telephoneNumber: cv.telephoneNumber,
-                about: cv.about,
-                geniusApp: 'craft',
-                geniusBody: cv,
-                status: 'writing',
-            }),
-        });
-        const data = await response.json();
-        if (data.requestPath != undefined) {
-            toast.success("You created a new CV Request: " + data.requestPath.split("/").pop());
+        console.log(cv);
+        try {
+            const response = await fetch('/api/geniuscvmaker', {
+                method: 'POST',//Don't get confused, this is always POST
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    uid: user.uid,
+                    firstName: cv.firstName,
+                    lastName: cv.lastName,
+                    email: cv.email,
+                    telephoneNumber: cv.telephoneNumber,
+                    about: cv.about,
+                    facebook: cv.facebook,
+                    instagram: cv.instagram,
+                    linkedin: cv.linkedin,
+                    tiktok: cv.tiktok,
+                    youtube: cv.youtube,
+                    github: cv.github,
+                    geniusApp: 'craft',
+                    geniusBody: cv,
+                    status: 'writing',
+                }),
+            });
+            const data = await response.json();
+            console.log('Success:', data);
+            if (data.requestPath != undefined) {
+                toast.success("You created a new CV Request: " + data.requestPath.split("/").pop());
+                router.push("/cvList");
+            }
+            else {
+                if (data.error != undefined) {
+                    toast.error(data.error + ' - ' + data.message);
+                }
+                else {
+                    toast.error("Error creating CV request. Please contact Support.");
+                }
+            }
+
+        } catch (error) {
+            console.error('Error:', error);
+            toast.error("Error requesting: " + error.message);
         }
-        else {
-            toast.error("Error creating CV request. Please contact Support.");
-        }
-        router.push("/cvList"); 
     };
 
     useEffect(() => {
@@ -677,89 +701,23 @@ function Craft({ auth }) {
                                             variant="underlined" />
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <Input
-                                            type="text"
-                                            name="facebook"
-                                            label="Facebook"
-                                            value={currentCv.facebook}
-                                            onChange={handleInputChange}
-                                            fullWidth
-                                            startContent={
-                                                <>
-                                                    <img src="/assets/svg/facebook.svg" width={20} className='mr-1' />
-                                                    <span className="text-default-400 text-small">facebook.com/</span>
-                                                </>
-                                            }
-                                            variant="underlined" />
-                                        <Input
-                                            type="text"
-                                            name="instagram"
-                                            label="Instagram"
-                                            value={currentCv.instagram}
-                                            onChange={handleInputChange}
-                                            fullWidth
-                                            startContent={
-                                                <>
-                                                    <img src="/assets/svg/instagram.svg" width={20} className='mr-1' />
-                                                    <span className="text-default-400 text-small">instagram.com/</span>
-                                                </>
-                                            }
-
-                                            variant="underlined" />
-                                        <Input
-                                            type="text"
-                                            name="linkedin"
-                                            label="LinkedIn"
-                                            value={currentCv.linkedin}
-                                            onChange={handleInputChange}
-                                            fullWidth
-                                            startContent={
-                                                <>
-                                                    <img src="/assets/svg/linkedin.svg" width={20} className='mr-1' />
-                                                    <span className="text-default-400 text-small">linkedin.com/in/</span>
-                                                </>
-                                            }
-                                            variant="underlined" />
-                                        <Input
-                                            type="text"
-                                            name="tiktok"
-                                            label="TikTok"
-                                            value={currentCv.tiktok}
-                                            onChange={handleInputChange}
-                                            fullWidth
-                                            startContent={
-                                                <>
-                                                    <img src="/assets/svg/tiktok.svg" width={20} className='mr-1' />
-                                                    <span className="text-default-400 text-small">tiktok.com/@</span>
-                                                </>
-                                            }
-                                            variant="underlined" />
-                                        <Input
-                                            type="text"
-                                            name="youtube"
-                                            label="YouTube"
-                                            value={currentCv.youtube}
-                                            onChange={handleInputChange}
-                                            fullWidth
-                                            startContent={
-                                                <>
-                                                    <img src="/assets/svg/youtube.svg" width={20} className='mr-1' />
-                                                    <span className="text-default-400 text-small">youtube.com/@</span>
-                                                </>}
-                                            variant="underlined" />
-                                        <Input
-                                            type="text"
-                                            name="github"
-                                            label="GitHub"
-                                            value={currentCv.github}
-                                            onChange={handleInputChange}
-                                            fullWidth
-                                            startContent={
-                                                <>
-                                                    <img src="/assets/svg/github.svg" width={20} className='mr-1' />
-                                                    <span className="text-default-400 text-small">github.com/</span>
-                                                </>}
-                                            variant="underlined" />
+                                        {socialLinks.map(socialNetwork => (
+                                            <Input
+                                                type="text"
+                                                name={socialNetwork.name}
+                                                label={socialNetwork.name.charAt(0).toUpperCase() + socialNetwork.name.slice(1)}
+                                                value={currentCv[socialNetwork.name]}
+                                                onChange={handleInputChange}
+                                                fullWidth
+                                                startContent={
+                                                    <>
+                                                        <img src={`/assets/svg/${socialNetwork.name}.svg`} width={20} className="mr-1" />
+                                                        <span className="text-default-400 text-small">{socialNetwork.baseUrl}</span>
+                                                    </>
+                                                }
+                                                variant="underlined"
+                                            />
+                                        ))}
                                     </div>
                                 </div>
                             </ModalBody>

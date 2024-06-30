@@ -4,6 +4,25 @@ config(); // Load environment variables from .env file
 import { initializeApp } from 'firebase/app';
 import { collection, getDocs, getFirestore, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import fetch from 'node-fetch';
+//import craft from '../pages/craft';
+
+const socialLinks = [
+  { name: 'facebook', baseUrl: 'https://facebook.com/' },
+  { name: 'instagram', baseUrl: 'https://instagram.com/' },
+  { name: 'linkedin', baseUrl: 'https://linkedin.com/in/' },
+  { name: 'tiktok', baseUrl: 'https://tiktok.com/@' },
+  { name: 'youtube', baseUrl: 'https://youtube.com/@' },
+  { name: 'github', baseUrl: 'https://github.com/' },
+];
+
+const degrees = [
+  { key: "associate", label: "Associate" },
+  { key: "bachelor", label: "Bachelor's, (BSc)" },
+  { key: "master", label: "Master's (MSc)" },
+  { key: "phd", label: "Post-Doctorate (Ph.D.)" },
+  { key: "professional", label: "Professional (M.D., J.D.)" },
+  { key: "other", label: "Other" },
+];
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -55,36 +74,97 @@ for (const taskDoc of querySnapshot.docs) {
       let email = pendingTaskData.email;
       let telephoneNumber = pendingTaskData.telephoneNumber;
       let about = pendingTaskData.about;
-      let geniusCommand = 'Your task is to build a CV for the following professional. The Personal Information starts and ends withinn triple backticks:\n';
+      let facebook = pendingTaskData.facebook;
+      let instagram = pendingTaskData.instagram;
+      let linkedin = pendingTaskData.linkedin;
+      let tiktok = pendingTaskData.tiktok;
+      let youtube = pendingTaskData.youtube;
+      let github = pendingTaskData.github;
+
+      let geniusCommand = 'Your task is to build a CV for a professional. Follow this steps:\n';
+      geniusCommand += 'Step 1: Consider the Personal Information for this professional, contained between triple backticks:\n';
       geniusCommand += '```START OF PERSONAL INFORMATION\n';
       geniusCommand += 'First Name: ' + firstName + '\n';
       geniusCommand += 'Last Name: ' + lastName + '\n';
       geniusCommand += 'Email: ' + email + '\n';
-      geniusCommand += 'Telephone number: ' + telephoneNumber + '\n';
-      geniusCommand += 'Description: ' + about + '\n';
+      if (telephoneNumber) { geniusCommand += 'Telephone number: ' + telephoneNumber + '\n' };
+      if (about) { geniusCommand += 'Profile: ' + about + '\n' };
+      if (facebook) { geniusCommand += 'Facebook ID: ' + facebook + ' URL: ' + socialLinks.find(link => link.name === "facebook").baseUrl + facebook + '\n' };
+      if (instagram) { geniusCommand += 'Instagram ID: ' + instagram + ' URL: ' + socialLinks.find(link => link.name === "instagram").baseUrl + instagram + '\n' };
+      if (linkedin) { geniusCommand += 'LinkedIn ID: ' + linkedin + ' URL: ' + socialLinks.find(link => link.name === "linkedin").baseUrl + linkedin + '\n' };
+      if (tiktok) { geniusCommand += 'TikTok ID: ' + tiktok + ' URL: ' + socialLinks.find(link => link.name === "tiktok").baseUrl + tiktok + '\n' };
+      if (youtube) { geniusCommand += 'Youtube ID: ' + youtube + ' URL: ' + socialLinks.find(link => link.name === "youtube").baseUrl + youtube + '\n' };
+      if (github) { geniusCommand += 'Github ID: ' + github + ' URL: ' + socialLinks.find(link => link.name === "github").baseUrl + github + '\n' };
       geniusCommand += 'END OF PERSONAL INFORMATION```\n';
-      geniusCommand += 'Consider the following CV INPUT DATA, contained between triple backticks, to build the corresponding professional CV.\n';
-      geniusCommand += '```START OF CV INPUT DATA\n';
+
+      const cvInputData = pendingTaskData.geniusBody;
 
       switch (pendingTaskData.geniusApp) {
         case 'scratch':
-          const scratchAnswers = pendingTaskData.geniusBody;
-          let scratchInterview = 'Interview:\n';
-          scratchInterview += "Question: " + scratchQuestions.passion + "\nAnswer: " + scratchAnswers.passion + "\n";
-          scratchInterview += "Question: " + scratchQuestions.envision + "\nAnswer: " + scratchAnswers.envision + "\n";
-          scratchInterview += "Question: " + scratchQuestions.field_of_study + "\nAnswer: " + scratchAnswers.field_of_study + "\n";
-          scratchInterview += "Question: " + scratchQuestions.motivation + "\nAnswer: " + scratchAnswers.motivation + "\n";
-          scratchInterview += "Question: " + scratchQuestions.studies + "\nAnswer: " + scratchAnswers.studies + "\n";
-          scratchInterview += "Question: " + scratchQuestions.skills + "\nAnswer: " + scratchAnswers.skills + "\n";
-          scratchInterview += "Question: " + scratchQuestions.experience + "\nAnswer: " + scratchAnswers.experience + "\n";
-          scratchInterview += "Question: " + scratchQuestions.activities + "\nAnswer: " + scratchAnswers.activities + "\n";
-          scratchInterview += "Question: " + scratchQuestions.languages + "\nAnswer: " + scratchAnswers.languages + "\n";
-          scratchInterview += "Question: " + scratchQuestions.references + "\nAnswer: " + scratchAnswers.references + "\n";
+          let scratchInterview = '';
+          scratchInterview += "Question: " + scratchQuestions.passion + "\nAnswer: " + cvInputData.passion + "\n";
+          scratchInterview += "Question: " + scratchQuestions.envision + "\nAnswer: " + cvInputData.envision + "\n";
+          scratchInterview += "Question: " + scratchQuestions.field_of_study + "\nAnswer: " + cvInputData.field_of_study + "\n";
+          scratchInterview += "Question: " + scratchQuestions.motivation + "\nAnswer: " + cvInputData.motivation + "\n";
+          scratchInterview += "Question: " + scratchQuestions.studies + "\nAnswer: " + cvInputData.studies + "\n";
+          scratchInterview += "Question: " + scratchQuestions.skills + "\nAnswer: " + cvInputData.skills + "\n";
+          scratchInterview += "Question: " + scratchQuestions.experience + "\nAnswer: " + cvInputData.experience + "\n";
+          scratchInterview += "Question: " + scratchQuestions.activities + "\nAnswer: " + cvInputData.activities + "\n";
+          scratchInterview += "Question: " + scratchQuestions.languages + "\nAnswer: " + cvInputData.languages + "\n";
+          scratchInterview += "Question: " + scratchQuestions.references + "\nAnswer: " + cvInputData.references + "\n";
+
+          geniusCommand += 'Step 2: Consider the following INTERVIEW to build the CV\n';
+          geniusCommand += '```START OF INTERVIEW\n';
+
           geniusCommand += scratchInterview;
 
+          geniusCommand += 'END OF INTERVIEW```\n';
+          geniusCommand += 'Step 3: Enhance the Profile from PERSONAL INFORMATION using INTERVIEW.\n';
           break;
         case 'craft':
           // Implement 'craft' case handling here
+          let craftData = '';
+
+          craftData += 'SECTION: WORK EXPERIENCES\n'; // Corrected the initial value
+          cvInputData.workExperiences.map((workExperience, index) => {
+            craftData += `Work Experience #${index + 1}:\n`;  // Add enumeration
+            workExperience.companyName && (craftData += 'I worked for the company ' + workExperience.companyName + '\n');
+            workExperience.position && (craftData += 'My position or role was ' + workExperience.position + '\n');
+            workExperience.dateFrom && (craftData += 'I started working from ' + workExperience.dateFrom + '\n');
+            workExperience.dateTo && !(workExperience.current) && (craftData += 'I worked until' + workExperience.dateTo + '\n');
+            workExperience.achievements && (craftData += 'My achievements here were: ' + workExperience.achievements + '\n');
+          });
+
+          craftData += 'SECTION: LICENSES\n'; // Corrected the initial value
+          cvInputData.licenses.map((license, index) => {
+            craftData += `License #${index + 1}:\n`;  // Add enumeration
+            license.title && (craftData += 'I have a professional license as ' + license.title + '\n');
+            license.degree && license.degree !== 'other' && (craftData += 'My Degree is ' + degrees.find(degree => degree.key === license.degree).label + '\n');
+            license.institution && (craftData += 'The issuer of the license was ' + license.institution + '\n');
+            license.achieved && (craftData += 'I achieved it on ' + license.achieved + '\n');
+          });
+
+          craftData += 'SECTION: CERTIFICATIONS\n'; // Corrected the initial value
+          cvInputData.certifications.map((certification, index) => {
+            craftData += `Certification #${index + 1}:\n`;  // Add enumeration
+            certification.title && (craftData += 'I\'m certified as ' + certification.title + '\n');
+            certification.institution && (craftData += 'The issuer of the certification was ' + certification.institution + '\n');
+            certification.achieved && (craftData += 'I achieved it on ' + certification.achieved + '\n');
+            certification.expiration && !(certification.perpetual) && (craftData += 'It expires on ' + certification.expiration + '\n');
+            certification.certificationID && (craftData += 'My Certification ID is ' + certification.certificationID + '\n');
+            certification.certificationURL && (craftData += 'The Certificate URL is ' + certification.certificationURL + '\n');
+          });
+          
+          geniusCommand += 'Step 2: Consider the following CRAFTING_DATA to build the CV\n';
+          geniusCommand += '```START OF CRAFTING_DATA\n';
+
+          geniusCommand += craftData;
+
+          geniusCommand += 'END OF CRAFTING_DATA```\n';
+          geniusCommand += 'Step 3: Enhance the Profile from PERSONAL INFORMATION using CRAFTING_DATA\n';
+
+
+
           break;
         case 'optimize':
           // Implement 'optimize' case handling here
@@ -93,11 +173,12 @@ for (const taskDoc of querySnapshot.docs) {
           // Implement 'spotlight' case handling here
           break;
       }
-      geniusCommand += 'END OF CV INPUT DATA```\n';
-      geniusCommand += 'The Description from the PERSONAL INFORMATION should be improved with the information from the CV INPUT DATA.\n';
-      geniusCommand += 'Your output will be a CV in Spanish, using all the provided information and highlighting skills and having sections like Professional Summary, Goals and Objectives, Education, Skills, Experience, Extracurricular Activities, Languages, and References.\n';
-      geniusCommand += 'You can add or modify sections as you consider to be more professional. Your generated answer should be in HTML format starting from a <div> tag, using the Name as title, formatting and structuring it with elegant inline CSS style design inside it\'s respective <style> tag, with tags <ul> and <li> for bullet items inside each section where possible and correctly spaced detailed with extra <p> and <br> between sections where it visually fits, ready to be included into a web page.\n';
-      geniusCommand += 'Don\'t add text or any comment outside the <div> generated answer, remove from your answer any text outside of the main <div> tag until the answer is the CV only.\n';
+      geniusCommand += 'Step 4: Generate a new CV using the provided information in previous steps, emphasizing skills and organizing it into sections such as Professional Summary, Goals and Objectives, Education, Skills, Experience, Extracurricular Activities, Languages, and References. You may add or modify sections to enhance professionalism. Arrange each section\'s content from latest to earliest when applicable, and remove any empty or irrelevant sections. Optimize content for readability, eliminating redundant or obvious text.\n';
+      geniusCommand += 'Step 5: Ensure the Professional Summary of the new CV section is succinct, non-redundant, and short but professional enough.\n';
+      geniusCommand += 'Step 6: Format this new CV in HTML starting from a <div> tag. Use the Name as the title, with elegant inline CSS styling within a <style> tag. Avoid large font sizes.\n';
+      //geniusCommand += 'Utilize <ul> and <li> tags for bullet items within each section, and add extra <p> and <br> tags for visual spacing where appropriate.\n';
+      //geniusCommand += 'Ensure the HTML is ready for inclusion in a web page.\n';
+      geniusCommand += 'Step 7: Ensure your Output is only the HTML within the main <div> tag, with no additional text or comments outside of it.\n';
 
       try {
         console.log("PROMPT", geniusCommand);
@@ -114,7 +195,10 @@ for (const taskDoc of querySnapshot.docs) {
           console.log("data.result", data.result);
 
           try {
-            await updateDoc(taskDocumentRef, { geniusResponse: data.result, status: 'finalized' });
+            let dataResult = data.result;
+            let divStartIndex = dataResult.indexOf('<div>');
+            dataResult = divStartIndex !== -1 ? dataResult.substring(divStartIndex) : dataResult;
+            await updateDoc(taskDocumentRef, { geniusResponse: dataResult, status: 'finalized' });
             await updateDoc(taskDoc.ref, { status: 1 });
           } catch (updateError) {
             console.error('Error updating Firestore documents:', updateError);
@@ -127,7 +211,6 @@ for (const taskDoc of querySnapshot.docs) {
       } catch (fetchError) {
         console.error('Error generating CV:', fetchError);
       }
-
 
     } else {
       console.log('No such document!');

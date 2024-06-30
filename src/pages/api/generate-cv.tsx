@@ -42,7 +42,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
               content: content.geniusPrompt,
             },
           ],
-          temperature: 0.7,
+          temperature: 0.6,
+          max_tokens: 1500,
+          top_p: 1.0,
+          frequency_penalty:0.0,
+          presence_penalty:0.0,
         }),
       });
 

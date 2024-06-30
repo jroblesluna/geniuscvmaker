@@ -81,7 +81,7 @@ function Scratch({ auth }) {
             // Handle submission logic here
             setIsProcessing(true);
             setFocusedTextarea("");
-            console.log("Form submitted:", answers);
+            console.log("Submitting Form:", answers);
             console.log("userData", userData);
 
             const response = await fetch('/api/geniuscvmaker', {
@@ -251,6 +251,7 @@ function Scratch({ auth }) {
             if (userDocSnapshot.exists()) {
                 const userData = userDocSnapshot.data();
                 setUserData(userData);
+                //console.log("userData",userData);
                 return true;
             } else {
                 console.log("The user document doesn't exist");
@@ -397,7 +398,8 @@ function Scratch({ auth }) {
                                                             description={question.description}
                                                             placeholder={`Example: ${question.example}`}
                                                             autoFocus={focusedTextarea === question.key}
-                                                            value={answers[question.key]}
+                                                            //value={answers[question.key]}
+                                                            value={question.example}
                                                             onChange={handleTextareaChange(question.key)}
                                                             classNames={{
                                                                 input: "resize-y text-sm font-light",
