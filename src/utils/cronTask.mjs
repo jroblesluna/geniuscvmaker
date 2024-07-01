@@ -4,25 +4,7 @@ config(); // Load environment variables from .env file
 import { initializeApp } from 'firebase/app';
 import { collection, getDocs, getFirestore, doc, getDoc, updateDoc, query, where } from 'firebase/firestore';
 import fetch from 'node-fetch';
-//import craft from '../pages/craft';
-
-const socialLinks = [
-  { name: 'facebook', baseUrl: 'https://facebook.com/' },
-  { name: 'instagram', baseUrl: 'https://instagram.com/' },
-  { name: 'linkedin', baseUrl: 'https://linkedin.com/in/' },
-  { name: 'tiktok', baseUrl: 'https://tiktok.com/@' },
-  { name: 'youtube', baseUrl: 'https://youtube.com/@' },
-  { name: 'github', baseUrl: 'https://github.com/' },
-];
-
-const degrees = [
-  { key: "associate", label: "Associate" },
-  { key: "bachelor", label: "Bachelor's, (BSc)" },
-  { key: "master", label: "Master's (MSc)" },
-  { key: "phd", label: "Post-Doctorate (Ph.D.)" },
-  { key: "professional", label: "Professional (M.D., J.D.)" },
-  { key: "other", label: "Other" },
-];
+import { socialLinks, languagesList, proficiencyLevels, degrees } from '../components/consts';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -55,6 +37,7 @@ console.log(`Start Date and Time: ${formattedDate}`);
 
 const firestore = getFirestore();
 const tasksCollection = collection(firestore, 'tasks');
+console.log("tasksCollection",tasksCollection);
 const querySnapshot = await getDocs(query(tasksCollection, where('status', '==', 0)));
 
 for (const taskDoc of querySnapshot.docs) {
@@ -67,7 +50,7 @@ for (const taskDoc of querySnapshot.docs) {
     const taskDocument = await getDoc(taskDocumentRef);
 
     if (taskDocument.exists()) {
-      console.log("taskDocument.data()", taskDocument.data());
+      //console.log("taskDocument.data()", taskDocument.data());
       const pendingTaskData = taskDocument.data();
       let firstName = pendingTaskData.firstName;
       let lastName = pendingTaskData.lastName;
@@ -81,7 +64,7 @@ for (const taskDoc of querySnapshot.docs) {
       let youtube = pendingTaskData.youtube;
       let github = pendingTaskData.github;
 
-      let geniusCommand = 'Your task is to build a CV for a professional. Follow this steps:\n';
+      let geniusCommand = 'Your task is to build a CV for a professional following these steps:\n';
       geniusCommand += 'Step 1: Consider the Personal Information for this professional, contained between triple backticks:\n';
       geniusCommand += '```START OF PERSONAL INFORMATION\n';
       geniusCommand += 'First Name: ' + firstName + '\n';
@@ -132,7 +115,7 @@ for (const taskDoc of querySnapshot.docs) {
             workExperience.position && (craftData += 'My position or role was ' + workExperience.position + '\n');
             workExperience.dateFrom && (craftData += 'I started working from ' + workExperience.dateFrom + '\n');
             workExperience.dateTo && !(workExperience.current) && (craftData += 'I worked until' + workExperience.dateTo + '\n');
-            workExperience.achievements && (craftData += 'My achievements here were: ' + workExperience.achievements + '\n');
+            workExperience.achievements && (craftData += 'My achievements were: ' + workExperience.achievements + '\n');
           });
 
           craftData += 'SECTION: LICENSES\n'; // Corrected the initial value
@@ -154,7 +137,32 @@ for (const taskDoc of querySnapshot.docs) {
             certification.certificationID && (craftData += 'My Certification ID is ' + certification.certificationID + '\n');
             certification.certificationURL && (craftData += 'The Certificate URL is ' + certification.certificationURL + '\n');
           });
-          
+
+          craftData += 'SECTION: SKILLS\n'; // Corrected the initial value
+          craftData += 'I\'m skilled in: '; // Corrected the initial value
+          cvInputData.skills.map((skill) => {
+            skill.skillName && (craftData += skill.skillName + ', ');
+          });
+          craftData += '\n';
+
+
+          craftData += 'SECTION: LANGUAGES\n'; // Corrected the initial value
+          cvInputData.languages.map((language, index) => {
+            craftData += `Language #${index + 1}: `;  // Add enumeration
+            language.language && (craftData += 'I can speak ' + languagesList.find(languageItem => languageItem.key === language.language).label + ', ');
+            language.proficiencyLevel && (craftData += 'my proficiency level is ' + proficiencyLevels.find(proficiencyLevel => proficiencyLevel.key === language.proficiencyLevel).label + '\n');
+          });
+
+          craftData += 'SECTION: PERSONAL REFERENCES\n'; // Corrected the initial value
+          cvInputData.personalReferences.map((personalReference, index) => {
+            craftData += `Reference #${index + 1}: `;  // Add enumeration
+            personalReference.name && (craftData += personalReference.name + ', ');
+            personalReference.institution && (craftData += personalReference.institution + ', ');
+            personalReference.position && (craftData += personalReference.position + ', ');
+            personalReference.email && (craftData += personalReference.email + ', ');
+            personalReference.telephoneNumber && (craftData += personalReference.telephoneNumber + '\n');
+          });
+
           geniusCommand += 'Step 2: Consider the following CRAFTING_DATA to build the CV\n';
           geniusCommand += '```START OF CRAFTING_DATA\n';
 
@@ -175,13 +183,13 @@ for (const taskDoc of querySnapshot.docs) {
       }
       geniusCommand += 'Step 4: Generate a new CV using the provided information in previous steps, emphasizing skills and organizing it into sections such as Professional Summary, Goals and Objectives, Education, Skills, Experience, Extracurricular Activities, Languages, and References. You may add or modify sections to enhance professionalism. Arrange each section\'s content from latest to earliest when applicable, and remove any empty or irrelevant sections. Optimize content for readability, eliminating redundant or obvious text.\n';
       geniusCommand += 'Step 5: Ensure the Professional Summary of the new CV section is succinct, non-redundant, and short but professional enough.\n';
-      geniusCommand += 'Step 6: Format this new CV in HTML starting from a <div> tag. Use the Name as the title, with elegant inline CSS styling within a <style> tag. Avoid large font sizes.\n';
+      geniusCommand += 'Step 6: Format this new CV in HTML starting from a <div> tag. Use the Name as the title, with elegant inline CSS styling within a <style> tag without modifying the style of .container or primary tags like body, p, h1, h2, h3. h4, h5 and h6. Avoid large font sizes.\n';
       //geniusCommand += 'Utilize <ul> and <li> tags for bullet items within each section, and add extra <p> and <br> tags for visual spacing where appropriate.\n';
       //geniusCommand += 'Ensure the HTML is ready for inclusion in a web page.\n';
       geniusCommand += 'Step 7: Ensure your Output is only the HTML within the main <div> tag, with no additional text or comments outside of it.\n';
 
       try {
-        console.log("PROMPT", geniusCommand);
+        console.log("PROMPT: ", geniusCommand);
         const response = await fetch('http://localhost:3000/api/generate-cv', {
           method: 'POST',
           headers: {
@@ -192,7 +200,7 @@ for (const taskDoc of querySnapshot.docs) {
 
         const data = await response.json();
         if (data.result) {
-          console.log("data.result", data.result);
+          //console.log("data.result", data.result);
 
           try {
             let dataResult = data.result;

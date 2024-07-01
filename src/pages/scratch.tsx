@@ -398,8 +398,8 @@ function Scratch({ auth }) {
                                                             description={question.description}
                                                             placeholder={`Example: ${question.example}`}
                                                             autoFocus={focusedTextarea === question.key}
-                                                            //value={answers[question.key]}
-                                                            value={question.example}
+                                                            value={answers[question.key]}
+                                                            //value={question.example}
                                                             onChange={handleTextareaChange(question.key)}
                                                             classNames={{
                                                                 input: "resize-y text-sm font-light",

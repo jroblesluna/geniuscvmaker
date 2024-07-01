@@ -38,7 +38,7 @@ function Apps({ auth }) {
 								</div>
 							</div>
 							<div className="absolute w-full h-full flex flex-col justify-between px-[5%] py-[5%] sm:px-[10%] sm:py-[5%] md:px-[10%] md:py-[5%] lg:px-[10%] lg:py-[5%] xl:px-[10%] xl:py-[5%] text-[2.5vw] sm:text-[1.25vw] md:text-[1.25vw] lg:text-[1.25vw] xl:text-[1.25vw] shadow-[0_8px_14px_0_rgba(0,0,0,0.2)] bg-[#FF4F22] text-white rounded-xl [transform:rotateY(180deg)] [backface-visibility:hidden]">
-								<p>ANSWER FEW QUESTIONS ABOUT YOUR SKILLS, EXPERIENCE, AND OTHER RELEVANT INFORMATION. YOU CAN DETAIL AS MUCH AS YOU WANT. OUR AI WILL CRAFT A MASTERPIECE CV, TAILORED TO YOUR UNIQUE PROFILE.</p>
+								<p>COMPLETE A PROFILE WITH YOUR SKILLS, EXPERIENCE, AND OTHER RELEVANT INFORMATION. YOU CAN DETAIL AS MUCH AS YOU WANT. OUR AI WILL CRAFT A MASTERPIECE CV, TAILORED TO YOUR UNIQUE PROFILE.</p>
 								<button onClick={goCraft} className='appButton rounded-lg border border-white h-[5vw] sm:h-[3vw] md:h-[3vw] lg:h-[3vw] xl:h-[3vw]'>Craft</button>
 							</div>
 						</div>

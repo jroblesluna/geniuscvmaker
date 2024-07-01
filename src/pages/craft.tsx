@@ -8,148 +8,9 @@ import { parseDate } from "@internationalized/date";
 import SvgEdit from '../components/svgEdit';
 import SvgCancel from '../components/svgCancel';
 import { useRouter } from 'next/router';
+import { degrees, languagesList, proficiencyLevels, socialLinks } from '../components/consts';
 
-interface CvCraft {
-    id?: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    telephoneNumber: string;
-    about: string;
-    facebook: string;
-    instagram: string;
-    linkedin: string;
-    tiktok: string;
-    youtube: string;
-    github: string;
-    workExperiences: workExperience[];
-    licenses: license[];
-    certifications: certification[];
-    skills: skill[];
-    languages: language[];
-    personalReferences: personalReference[];
-}
-
-interface workExperience {
-    companyName: string;
-    dateFrom: string;
-    dateTo: string;
-    current: boolean;
-    position: string;
-    achievements: string;
-}
-
-interface license {
-    institution: string;
-    achieved: string;
-    degree: string;
-    title: string;
-}
-
-interface certification {
-    institution: string;
-    achieved: string;
-    title: string;
-    certificationURL: string;
-    certificationID: string;
-    expiration: string;
-    perpetual: boolean;
-}
-
-interface skill {
-    skillName: string;
-}
-
-interface language {
-    language: string;
-    proficiencyLevel: string;
-}
-
-interface personalReference {
-    name: string;
-    institution: string;
-    position: string;
-    telephoneNumber: string;
-    email: string;
-}
-
-const degrees = [
-    { key: "associate", label: "Associate" },
-    { key: "bachelor", label: "Bachelor's, (BSc)" },
-    { key: "master", label: "Master's (MSc)" },
-    { key: "phd", label: "Post-Doctorate (Ph.D.)" },
-    { key: "professional", label: "Professional (M.D., J.D.)" },
-    { key: "other", label: "Other" },
-]
-
-const languages = [
-    { key: "af", label: "Afrikaans" },
-    { key: "am", label: "Amharic" },
-    { key: "ar", label: "Arabic" },
-    { key: "bn", label: "Bengali" },
-    { key: "bg", label: "Bulgarian" },
-    { key: "my", label: "Burmese" },
-    { key: "ca", label: "Catalan" },
-    { key: "zh", label: "Mandarin Chinese" },
-    { key: "hr", label: "Croatian" },
-    { key: "cs", label: "Czech" },
-    { key: "da", label: "Danish" },
-    { key: "nl", label: "Dutch" },
-    { key: "en", label: "English" },
-    { key: "et", label: "Estonian" },
-    { key: "fa", label: "Persian" },
-    { key: "fi", label: "Finnish" },
-    { key: "fr", label: "French" },
-    { key: "ka", label: "Georgian" },
-    { key: "de", label: "German" },
-    { key: "el", label: "Greek" },
-    { key: "gu", label: "Gujarati" },
-    { key: "hi", label: "Hindi" },
-    { key: "hu", label: "Hungarian" },
-    { key: "is", label: "Icelandic" },
-    { key: "id", label: "Indonesian" },
-    { key: "it", label: "Italian" },
-    { key: "ja", label: "Japanese" },
-    { key: "jv", label: "Javanese" },
-    { key: "kn", label: "Kannada" },
-    { key: "ko", label: "Korean" },
-    { key: "lv", label: "Latvian" },
-    { key: "lt", label: "Lithuanian" },
-    { key: "mr", label: "Marathi" },
-    { key: "ms", label: "Malay" },
-    { key: "pa", label: "Punjabi" },
-    { key: "pl", label: "Polish" },
-    { key: "pt", label: "Portuguese" },
-    { key: "ro", label: "Romanian" },
-    { key: "ru", label: "Russian" },
-    { key: "sr", label: "Serbian" },
-    { key: "es", label: "Spanish" },
-    { key: "sv", label: "Swedish" },
-    { key: "ta", label: "Tamil" },
-    { key: "te", label: "Telugu" },
-    { key: "th", label: "Thai" },
-    { key: "tr", label: "Turkish" },
-    { key: "ur", label: "Urdu" },
-    { key: "vi", label: "Vietnamese" }
-];
-
-const proficiencyLevels = [
-    { key: "A1", label: "Beginner" },
-    { key: "A2", label: "Elementary" },
-    { key: "B1", label: "Intermediate" },
-    { key: "B2", label: "Upper Intermediate" },
-    { key: "C1", label: "Advanced" },
-    { key: "C2", label: "Proficient" }
-];
-
-const socialLinks = [
-    { name: 'facebook', baseUrl: 'https://facebook.com/' },
-    { name: 'instagram', baseUrl: 'https://instagram.com/' },
-    { name: 'linkedin', baseUrl: 'https://linkedin.com/in/' },
-    { name: 'tiktok', baseUrl: 'https://tiktok.com/@' },
-    { name: 'youtube', baseUrl: 'https://youtube.com/@' },
-    { name: 'github', baseUrl: 'https://github.com/' },
-];
+import { CvCraft } from '../interfaces/geniuscvmaker';
 
 function Craft({ auth }) {
     const { user } = auth;
@@ -575,7 +436,7 @@ function Craft({ auth }) {
             <div className="mb-8 grid grid-cols-2">
                 <div className="text-3xl font-bold mb-4">Crafted CVs</div>
                 <div className='text-right'>
-                    <Button className='w-fit' onClick={() => handleModalOpen()}>Craft a New CV</Button>
+                    <Button color='primary' className='w-fit' onClick={() => handleModalOpen()}>Craft a New CV</Button>
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -609,7 +470,7 @@ function Craft({ auth }) {
                                         <Button variant='ghost' isDisabled={isUpdatingState[cv.id ?? ''] || false} onClick={() => handlePersonalReferencesModalOpen(cv)}>References ({cv.personalReferences.length})</Button>
                                     </div>
                                 </CardBody>
-                                <CardFooter className='flex flex-row items-center'>
+                                <CardFooter className='flex flex-row items-center gap-4'>
                                     <div className='text-xl font-bold text-left w-full flex flex-row gap-2'>
                                         {socialLinks.map(({ name, baseUrl }) => (
                                             <a
@@ -625,7 +486,7 @@ function Craft({ auth }) {
                                             </a>
                                         ))}
                                     </div>
-                                    <Button isLoading={isProcessing} onClick={() => handleSubmit(cv)} className="appBlackOnCitrine m-4">
+                                    <Button isLoading={isProcessing} onClick={() => handleSubmit(cv)} className="appBlackOnCitrine w-full">
                                         Craft CV
                                     </Button>
                                 </CardFooter>
@@ -814,12 +675,12 @@ function Craft({ auth }) {
                                                         variant="underlined" />
                                                 </div>
                                             ))}
-                                            <Button onClick={handleAddWorkExperience} color='primary' className="mt-4">Add Work Experience</Button>
                                         </div>
                                     </ModalBody>
                                     <ModalFooter>
-                                        <Button onClick={onWorkExperiencesModalClose} color='danger'>Cancel</Button>
-                                        <Button onClick={() => handleWorkExperiencesModalClose(true)} color='success'>Save and Close</Button>
+                                        <Button color='primary' onClick={handleAddWorkExperience}>Add Work Experience</Button>
+                                        <Button color='danger' onClick={onWorkExperiencesModalClose}>Cancel</Button>
+                                        <Button color='success' onClick={() => handleWorkExperiencesModalClose(true)}>Save and Close</Button>
                                     </ModalFooter>
                                 </>
                             )}
@@ -900,12 +761,12 @@ function Craft({ auth }) {
                                                         variant="underlined" />
                                                 </div>
                                             ))}
-                                            <Button onClick={handleAddLicense} className="mt-4">Add License</Button>
                                         </div>
                                     </ModalBody>
                                     <ModalFooter>
-                                        <Button onClick={onLicensesModalClose}>Cancel</Button>
-                                        <Button onClick={() => handleLicensesModalClose(true)}>Save and Close</Button>
+                                        <Button color='primary' onClick={handleAddLicense}>Add License</Button>
+                                        <Button color='danger' onClick={onLicensesModalClose}>Cancel</Button>
+                                        <Button color='success' onClick={() => handleLicensesModalClose(true)}>Save and Close</Button>
                                     </ModalFooter>
                                 </>
                             )}
@@ -1016,12 +877,12 @@ function Craft({ auth }) {
                                                     </div>
                                                 </div>
                                             ))}
-                                            <Button onClick={handleAddCertification} className="mt-4">Add Certification</Button>
                                         </div>
                                     </ModalBody>
                                     <ModalFooter>
-                                        <Button onClick={onCertificationsModalClose}>Cancel</Button>
-                                        <Button onClick={() => handleCertificationsModalClose(true)}>Save and Close</Button>
+                                        <Button color='primary' onClick={handleAddCertification}>Add Certification</Button>
+                                        <Button color='danger' onClick={onCertificationsModalClose}>Cancel</Button>
+                                        <Button color='success' onClick={() => handleCertificationsModalClose(true)}>Save and Close</Button>
                                     </ModalFooter>
                                 </>
                             )}
@@ -1073,12 +934,12 @@ function Craft({ auth }) {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <Button onClick={handleAddSkill} className="mt-4">Add Skill</Button>
                                         </div>
                                     </ModalBody>
                                     <ModalFooter>
-                                        <Button onClick={onSkillsModalClose}>Cancel</Button>
-                                        <Button onClick={() => handleSkillsModalClose(true)}>Save and Close</Button>
+                                        <Button color='primary' onClick={handleAddSkill}>Add Skill</Button>
+                                        <Button color='danger' onClick={onSkillsModalClose}>Cancel</Button>
+                                        <Button color='success' onClick={() => handleSkillsModalClose(true)}>Save and Close</Button>
                                     </ModalFooter>
                                 </>
                             )}
@@ -1110,7 +971,7 @@ function Craft({ auth }) {
                                                         <Select
                                                             name="language"
                                                             label="Language"
-                                                            items={languages}
+                                                            items={languagesList}
                                                             placeholder="Choose a Language"
                                                             selectedKeys={[language.language]}
                                                             onChange={(event) => handleLanguageChange(event, index)} // Pass selected value directly
@@ -1143,12 +1004,12 @@ function Craft({ auth }) {
                                                 </div>
                                             ))}
 
-                                            <Button onClick={handleAddLanguage} className="mt-4">Add Language</Button>
                                         </div>
                                     </ModalBody>
                                     <ModalFooter>
-                                        <Button onClick={onLanguagesModalClose}>Cancel</Button>
-                                        <Button onClick={() => handleLanguagesModalClose(true)}>Save and Close</Button>
+                                        <Button color='primary' onClick={handleAddLanguage}>Add Language</Button>
+                                        <Button color='danger' onClick={onLanguagesModalClose}>Cancel</Button>
+                                        <Button color='success' onClick={() => handleLanguagesModalClose(true)}>Save and Close</Button>
                                     </ModalFooter>
                                 </>
                             )}
@@ -1231,12 +1092,12 @@ function Craft({ auth }) {
                                                     </div>
                                                 </div>
                                             ))}
-                                            <Button onClick={handleAddPersonalReference} className="mt-4">Add Personal Reference</Button>
                                         </div>
                                     </ModalBody>
                                     <ModalFooter>
-                                        <Button onClick={onPersonalReferencesModalClose}>Cancel</Button>
-                                        <Button onClick={() => handlePersonalReferencesModalClose(true)}>Save and Close</Button>
+                                        <Button color='primary' onClick={handleAddPersonalReference}>Add Personal Reference</Button>
+                                        <Button color='danger' onClick={onPersonalReferencesModalClose}>Cancel</Button>
+                                        <Button color='success' onClick={() => handlePersonalReferencesModalClose(true)}>Save and Close</Button>
                                     </ModalFooter>
                                 </>
                             )}
