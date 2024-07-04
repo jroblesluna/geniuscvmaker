@@ -8,7 +8,7 @@ import { parseDate } from "@internationalized/date";
 import SvgEdit from '../components/svgEdit';
 import SvgCancel from '../components/svgCancel';
 import { useRouter } from 'next/router';
-import { degrees, languagesList, proficiencyLevels, socialLinks } from '../components/consts';
+import { degrees, languagesList, proficiencyLevels, socialLinks } from '../utils/consts';
 
 import { CvCraft } from '../interfaces/geniuscvmaker';
 

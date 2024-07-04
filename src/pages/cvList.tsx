@@ -5,25 +5,26 @@ import SvgStatusWriting from '../components/svgStatusWriting';
 import SvgStatusFinalized from '../components/svgStatusFinalized';
 import htmlDocx from 'html-docx-js/dist/html-docx';
 
+interface CVRequest {
+  id: string;
+  createdAt: Timestamp;
+  geniusApp: string;
+  geniusBody: {
+    activities: string;
+    envision: string;
+    experience: string;
+    field_of_study: string;
+    languages: string;
+    motivation: string;
+    passion: string;
+    references: string;
+    skills: string;
+    studies: string;
+  };
+  status: string;
+}
+
 function cvList({ auth }) {
-  interface CVRequest {
-    id: string;
-    createdAt: Timestamp;
-    geniusApp: string;
-    geniusBody: {
-      activities: string;
-      envision: string;
-      experience: string;
-      field_of_study: string;
-      languages: string;
-      motivation: string;
-      passion: string;
-      references: string;
-      skills: string;
-      studies: string;
-    };
-    status: string;
-  }
 
   const { user } = auth;
   const [cvRequests, setCVRequests] = useState<CVRequest[]>([]);

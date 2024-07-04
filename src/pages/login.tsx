@@ -1,24 +1,22 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
+import React, { useEffect, useState} from "react";
 import { useRouter } from "next/router";
 import { UserCredential, getAdditionalUserInfo } from "firebase/auth";
 import { getFirestore, doc, getDoc, setDoc, collection, updateDoc, DocumentReference, serverTimestamp } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from "react-hot-toast";
-import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, RadioGroup, Radio, Listbox, ListboxItem } from "@nextui-org/react";
+import { Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure } from "@nextui-org/react";
 import { useCompletion } from 'ai/react';
 import { withPublic } from "../hook/route";
 import SvgLoading from "../components/svgLoading";
 import SvgLogo from "../components/svgLogo";
 import { tosContent, tosTitle } from "../components/tos";
-import Link from "next/link";
-
 
 function Login({ auth }) {
 	const { userCred, user, loginWithGoogle, loginError } = auth;
 	const router = useRouter();
 	const refUrl = router.query.ref as string || '/apps';
 	const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
-	const [scrollBehavior, setScrollBehavior] = React.useState("inside");
+	//const [scrollBehavior, setScrollBehavior] = React.useState("inside");
 	const { isLoading, completion, complete, error, data } = useCompletion();
 	const prompt = "Generate a succinct summary similar to the following: 'I'm a driven and flexible professional with a diverse background across multiple industries. I have outstanding communication, leadership, and problem-solving skills, and a proven history of achievements. I'm confident to excel in high-pressure environments and I'm dedicated to continuous learning and growth for success in varied roles.'";
 	const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
@@ -62,7 +60,6 @@ function Login({ auth }) {
 			return null;
 		}
 	}
-
 
 	async function createCulqiUser(email: string, address: string, address_city: string, country_code: string, first_name: string, last_name: string, phone_number: string) {
 
@@ -183,7 +180,6 @@ function Login({ auth }) {
 			}
 		}
 	}
-
 
 	useEffect(() => {
 		if (user && !creationCheckRequested) {
