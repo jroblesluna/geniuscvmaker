@@ -337,7 +337,7 @@ function Profile({ auth }) {
                                                     classes="w-full h-10 bg-gray-100 rounded-xl px-2" />
                                                 <RegionDropdown
                                                     ref={(element) => { if (element) { inputRefs.current["addressState"] = element; } }}
-                                                    showDefaultOption={false}
+                                                    //showDefaultOption={false}
                                                     country={userData["addressCountry"]}
                                                     value={userData["addressState"]}
                                                     onChange={(e) => handleInputStringChange(e, "addressState")}
