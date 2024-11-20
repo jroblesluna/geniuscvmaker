@@ -41,9 +41,11 @@ function Index({ auth }) {
                                 <div className="appButtonContainer">
                                     <button onClick={goApps} className="appButton w-full text-[3vw] sm:text-[3vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded-lg">START BUILDING</button>
                                 </div>
+                                {/* 
                                 <div className="appButtonContainer">
                                     <button onClick={goSupport} className="appButton w-full text-[3vw] sm:text-[3vw] md:text-[2vw] lg:text-[2vw] xl:text-[2vw] text-gray-800 font-semibold py-2 px-4 border border-gray-400 hover:border-gray-800 rounded-lg">CONTACT US</button>
                                 </div>
+                                */}
                             </div>
                         </div>
                     </div>
