@@ -1,0 +1,1 @@
+sed -i '' 's/showDefaultOption?: string;/showDefaultOption?: boolean;/g' node_modules/react-country-region-selector/index.d.ts

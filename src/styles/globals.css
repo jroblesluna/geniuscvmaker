@@ -1,0 +1,416 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Credit-Card';
+  src: local('Credit Card'), local('Credit-Card'),
+    url('/fonts/Credit-Card.otf') format('opentype'),
+    url('/fonts/Credit-Card.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-ExtraLight.eot');
+  src: local('TT Hazelnuts ExtraLight'), local('TTHazelnuts-ExtraLight'),
+    url('/fonts/TTHazelnuts-ExtraLight.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-ExtraLight.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-ExtraLight.woff') format('woff'),
+    url('/fonts/TTHazelnuts-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-BoldItalic.eot');
+  src: local('TT Hazelnuts Bold Italic'), local('TTHazelnuts-BoldItalic'),
+    url('/fonts/TTHazelnuts-BoldItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-BoldItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-BoldItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-BoldItalic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Regular.eot');
+  src: local('TT Hazelnuts Regular'), local('TTHazelnuts-Regular'),
+    url('/fonts/TTHazelnuts-Regular.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Regular.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Regular.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Italic.eot');
+  src: local('TT Hazelnuts Italic'), local('TTHazelnuts-Italic'),
+    url('/fonts/TTHazelnuts-Italic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Italic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Italic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-LightItalic.eot');
+  src: local('TT Hazelnuts Light Italic'), local('TTHazelnuts-LightItalic'),
+    url('/fonts/TTHazelnuts-LightItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-LightItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-LightItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-LightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Light.eot');
+  src: local('TT Hazelnuts Light'), local('TTHazelnuts-Light'),
+    url('/fonts/TTHazelnuts-Light.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Light.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Light.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-MediumItalic.eot');
+  src: local('TT Hazelnuts Medium Italic'), local('TTHazelnuts-MediumItalic'),
+    url('/fonts/TTHazelnuts-MediumItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-MediumItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-MediumItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-MediumItalic.ttf') format('truetype');
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-ThinItalic.eot');
+  src: local('TT Hazelnuts Thin Italic'), local('TTHazelnuts-ThinItalic'),
+    url('/fonts/TTHazelnuts-ThinItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-ThinItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-ThinItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-ThinItalic.ttf') format('truetype');
+  font-weight: 100;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-ExtraBold.eot');
+  src: local('TT Hazelnuts ExtraBold'), local('TTHazelnuts-ExtraBold'),
+    url('/fonts/TTHazelnuts-ExtraBold.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-ExtraBold.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-ExtraBold.woff') format('woff'),
+    url('/fonts/TTHazelnuts-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-ExtraLightItalic.eot');
+  src: local('TT Hazelnuts ExtraLight Italic'), local('TTHazelnuts-ExtraLightItalic'),
+    url('/fonts/TTHazelnuts-ExtraLightItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-ExtraLightItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-ExtraLightItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-ExtraLightItalic.ttf') format('truetype');
+  font-weight: 200;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Medium.eot');
+  src: local('TT Hazelnuts Medium'), local('TTHazelnuts-Medium'),
+    url('/fonts/TTHazelnuts-Medium.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Medium.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Medium.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-HeavyItalic.eot');
+  src: local('TT Hazelnuts Heavy Italic'), local('TTHazelnuts-HeavyItalic'),
+    url('/fonts/TTHazelnuts-HeavyItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-HeavyItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-HeavyItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-HeavyItalic.ttf') format('truetype');
+  font-weight: 900;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Thin.eot');
+  src: local('TT Hazelnuts Thin'), local('TTHazelnuts-Thin'),
+    url('/fonts/TTHazelnuts-Thin.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Thin.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Thin.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Thin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Black.eot');
+  src: local('TT Hazelnuts Black'), local('TTHazelnuts-Black'),
+    url('/fonts/TTHazelnuts-Black.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Black.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Black.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Bold.eot');
+  src: local('TT Hazelnuts Bold'), local('TTHazelnuts-Bold'),
+    url('/fonts/TTHazelnuts-Bold.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Bold.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Bold.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-ExtraBoldItalic.eot');
+  src: local('TT Hazelnuts ExtraBold Italic'), local('TTHazelnuts-ExtraBoldItalic'),
+    url('/fonts/TTHazelnuts-ExtraBoldItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-ExtraBoldItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-ExtraBoldItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-ExtraBoldItalic.ttf') format('truetype');
+  font-weight: 800;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-BlackItalic.eot');
+  src: local('TT Hazelnuts Black Italic'), local('TTHazelnuts-BlackItalic'),
+    url('/fonts/TTHazelnuts-BlackItalic.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-BlackItalic.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-BlackItalic.woff') format('woff'),
+    url('/fonts/TTHazelnuts-BlackItalic.ttf') format('truetype');
+  font-weight: 900;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'TT Hazelnuts';
+  src: url('/fonts/TTHazelnuts-Heavy.eot');
+  src: local('TT Hazelnuts Heavy'), local('TTHazelnuts-Heavy'),
+    url('/fonts/TTHazelnuts-Heavy.eot?#iefix') format('embedded-opentype'),
+    url('/fonts/TTHazelnuts-Heavy.woff2') format('woff2'),
+    url('/fonts/TTHazelnuts-Heavy.woff') format('woff'),
+    url('/fonts/TTHazelnuts-Heavy.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'TAN-NIMBUS';
+  src: url('/fonts/TAN-NIMBUS.woff2') format('woff2');
+  /* Add additional font formats (e.g., woff, ttf) for better browser compatibility */
+}
+
+
+body {
+  font-family: 'TT Hazelnuts';
+}
+
+ul {
+  list-style-type: disc;
+  padding-left: 40px;
+}
+
+h1 {
+  margin-block-start: 21.44px;
+  margin-block-end: 21.44px;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+h2 {
+  margin-top: 13.28px;
+  margin-bottom: 13.28px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+h3 {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  font-size: 18.72px;
+  font-weight: 700;
+}
+
+.bg-home-image {
+  background-image: url('/assets/images/background_home.jpg');
+  background-size: cover;
+  background-position: center;
+}
+
+.black-text {
+  font-family: 'TAN-NIMBUS';
+  color: #1b1f24;
+}
+
+.blue-text {
+  font-family: 'TAN-NIMBUS';
+  color: #1E16C2;
+}
+
+.orange-text {
+  font-family: 'TAN-NIMBUS';
+  color: #FF4F22;
+}
+
+.citrine-text {
+  font-family: 'TAN-NIMBUS';
+  color: #DCC80F;
+}
+
+.white-text {
+  font-family: 'TAN-NIMBUS';
+  color: #ffffff;
+}
+
+.subtitle-text {
+  font-weight: 300;
+  color: #FF4F22;
+}
+
+.topic-title-blue {
+  font-weight: bold;
+  color: #1E16C2;
+}
+
+.topic-title-citrine {
+  font-weight: bold;
+  color: #DCC80F;
+}
+
+.topic-title-darkgray {
+  font-weight: bold;
+  color: #1b1f24;
+}
+
+.topic-title-white {
+  font-weight: bold;
+  color: white;
+}
+
+.topic-title-orange {
+  font-weight: bold;
+  color: #FF4F22;
+}
+
+.topic-text-white {
+  font-weight: normal;
+  color: #ffffff;
+}
+
+.topic-text-orange {
+  font-weight: normal;
+  color: #FF4F22;
+}
+
+
+.topic-text-blue {
+  font-weight: normal;
+  color: #1E16C2;
+}
+
+.topic-text-darkgray {
+  font-weight: normal;
+  color: #1b1f24;
+}
+
+
+.appButtonContainer {
+  margin-top: 20px;
+}
+
+.appButton {
+  background-color: #DCC80F;
+  color: #1b1f24;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.appButton:hover {
+  background-color: #FFD122;
+}
+
+.appButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.appBlackOnCitrine {
+  background-color: #DCC80F;
+  color: #1b1f24;
+  font-weight: bold;
+}
+
+.appWhiteOnOrange {
+  background-color: #FF4F22;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.appWhiteOnOrange:hover {
+  background-color: #ffffff;
+  color: #FF4F22;
+}
+
+.appWhiteOnBlack {
+  background-color: #1b1f24;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.appWhiteOnBlue {
+  background-color: #1E16C2;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.bg-genius-orange {
+  background-color: #FF4F22;
+}
+
+.loading-background {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.embossed {
+  font-family: 'Credit-Card';
+  color: transparent;
+  text-shadow:
+    -1px -1px 1px rgba(255, 255, 255, 0.5),
+    0px 0px 1px rgba(255, 255, 255, 0.8),
+    1.5px 1.5px 1px rgba(0, 0, 0, 0.9);
+}
