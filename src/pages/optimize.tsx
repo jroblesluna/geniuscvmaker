@@ -5,7 +5,7 @@ import { Button } from '@nextui-org/react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/router';
 
-function Optimize ({ auth }) {
+function Optimize({ auth }) {
   const { user } = auth;
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +19,9 @@ function Optimize ({ auth }) {
     setError(null);
 
     if (fileRejections.length > 0) {
-      setError('The file is invalid. Make sure the file is a DOC, DOCX or PDF and does not exceed 10MB.');
+      setError(
+        'The file is invalid. Make sure the file is a DOC, DOCX or PDF and does not exceed 10MB.'
+      );
       return;
     }
 
@@ -47,14 +49,16 @@ function Optimize ({ auth }) {
     cursor: 'pointer',
   };
 
-  
   const uploadFileToFirebase = async () => {
     if (file && user) {
       setUploading(true);
       const storage = getStorage();
 
       // Generate the timestamp
-      const timestamp = new Date().toISOString().replace(/[-:.TZ]/g, '').slice(0, 14); // yyyyMMddHHmmss
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/[-:.TZ]/g, '')
+        .slice(0, 14); // yyyyMMddHHmmss
 
       // Generate the storage path with timestamp
       const storagePath = `/apps/optimize/${user.uid}/${timestamp}_${file.name}`;
@@ -76,14 +80,23 @@ function Optimize ({ auth }) {
 
   return (
     <div className="container mx-auto px-4 py-4">
-      <div className="mb-8 grid grid-cols-2">
-        <div className="text-3xl font-bold mb-4">Optimize CV</div>
+      <div className="mb-8 flex  items-center justify-center">
+        <div className="text-3xl font-bold mb-4 mt-5">Optimize CV</div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4">
-        <div className='w-full m-1 rounded-xl'>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full md:w-auto">
-            <div {...getRootProps({ className: 'dropzone' })} style={dropzoneStyle}>
+        <div className="w-full m-1 rounded-xl ">
+          <div className="w-full md:w-auto flex  items-center  justify-center  h-[50vh]">
+            <div
+              {...getRootProps({ className: 'dropzone' })}
+              style={dropzoneStyle}
+              className="hover:opacity-75 h-[25vh] my-auto  "
+            >
+              <img
+                src="https://www.svgrepo.com/show/28557/upload-sign.svg"
+                width={35}
+                className="mx-auto my-3"
+              />
               <input {...getInputProps()} />
               <p>Drag and drop a file here, or click to select a file</p>
               <em>(Only DOC, DOCX and PDF files with a maximum size of 10MB are accepted)</em>
@@ -93,9 +106,9 @@ function Optimize ({ auth }) {
               {file && (
                 <div>
                   <p>File ready to Optimize:</p>
-                  <p className='text-green-700 font-bold'>{file.name}</p>
+                  <p className="text-green-700 font-bold">{file.name}</p>
                   <Button
-                    className='appBlackOnCitrine w-1/2'
+                    className="appBlackOnCitrine w-1/2"
                     onClick={uploadFileToFirebase}
                     disabled={uploading}
                   >
@@ -117,6 +130,6 @@ function Optimize ({ auth }) {
       </div>
     </div>
   );
-};
+}
 
 export default withProtected(Optimize);
