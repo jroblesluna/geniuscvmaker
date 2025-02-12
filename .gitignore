@@ -34,5 +34,24 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
-.firebase
+
+next-env.d.ts# Firebase Admin SDK
+firebase-adminsdk-*.json
+
+# Firebase Functions
+functions/node_modules
+functions/lib
+functions/*.js
+functions/*.js.map
+functions/.runtimeconfig.json
+
+# Firebase Hosting y compilaciones
+.firebase/
+build/
+dist/
+.cache/
+
+# Firebase Emulator Suite logs
+firebase-debug.log
+firestore-debug.log
+database-debug.log
