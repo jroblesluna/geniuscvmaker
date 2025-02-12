@@ -8,28 +8,11 @@ import {
   getDocs,
   getFirestore,
 } from '@firebase/firestore';
-import SvgStatusWriting from '../components/svgStatusWriting';
-import SvgStatusFinalized from '../components/svgStatusFinalized';
-import htmlDocx from 'html-docx-js/dist/html-docx';
 
-interface CVRequest {
-  id: string;
-  createdAt: Timestamp;
-  geniusApp: string;
-  geniusBody: {
-    activities: string;
-    envision: string;
-    experience: string;
-    field_of_study: string;
-    languages: string;
-    motivation: string;
-    passion: string;
-    references: string;
-    skills: string;
-    studies: string;
-  };
-  status: string;
-}
+import htmlDocx from 'html-docx-js/dist/html-docx';
+import { FileCheck, FileLineChartIcon } from 'lucide-react';
+import { capitalize } from '../utils/others';
+import { CVRequest } from '../interfaces/geniuscvmaker';
 
 function cvList({ auth }) {
   const { user } = auth;
@@ -38,7 +21,6 @@ function cvList({ auth }) {
   const [showCV, setShowCV] = useState<boolean>(false);
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(window.innerWidth < 768);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
   useEffect(() => {
     const fetchCVs = async () => {
       try {
@@ -55,7 +37,6 @@ function cvList({ auth }) {
             id: doc.id,
             createdAt: cvRequestData.createdAt,
             geniusApp: cvRequestData.geniusApp,
-            geniusBody: cvRequestData.geniusBody,
             status: cvRequestData.status,
           });
         });
@@ -170,7 +151,7 @@ function cvList({ auth }) {
         <h1 className="text-3xl font-bold mb-4">My CV's</h1>
       </div>
       <div className={`flex w-full  ${isSmallScreen ? 'flex-col' : 'flex-row'} gap-4`}>
-        <div className={`w-full `}>
+        <div className={`w-full  flex flex-col`}>
           {isLoading ? (
             <div className="text-center flex flex-col items-center h-[50vh] justify-center  mx-auto  ">
               <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
@@ -183,116 +164,111 @@ function cvList({ auth }) {
               <p className="mt-2">There are no CV Requests yet!</p>
             </div>
           ) : (
-            <div className="flex flex-col w-full gap-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-[65vh]  min-h-[35vh] ">
               {cvRequests
                 .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
                 .map((cvRequest) => (
                   <div
                     key={cvRequest.id}
-                    className="bg-gradient-to-tr from-blue-950 to-blue-300 rounded-md shadow-blue-950 shadow-md flex flex-row border gap-2"
+                    className={
+                      'rounded-md shadow-md  border gap-2  duration-300 hover:shadow-lg p-3 h-fit '
+                    }
                   >
-                    <div>
-                      {cvRequest.status === 'writing' ? (
-                        <SvgStatusWriting />
-                      ) : cvRequest.status === 'finalized' ? (
-                        <SvgStatusFinalized />
-                      ) : null}
+                    <div className="mb-4 flex justify-center">
+                      <div className="relative">
+                        <div className="rounded-full bg-black/10 p-3  transition-colors relative overflow-hidden">
+                          {cvRequest.status !== 'finalized' ? (
+                            <FileLineChartIcon className="h-6 w-6 text-black" />
+                          ) : (
+                            <FileCheck className="h-6 w-6 text-black" />
+                          )}
+                          {cvRequest.status !== 'finalized' && (
+                            <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-transparent border-t-black"></div>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col w-full justify-center text-[#DDEBFF]">
-                      <div>
-                        <b>Date:</b> {cvRequest.createdAt.toDate().toLocaleString()}
+                    <div className={'flex flex-col w-full justify-center'}>
+                      <div className="space-y-2 text-center">
+                        <div className="text-sm text-gray-600">
+                          <span className="font-semibold">Date:</span>{' '}
+                          {cvRequest.createdAt.toDate().toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          <span className="font-semibold">App:</span>
+                          {' ' + capitalize(cvRequest.geniusApp)}
+                        </div>
                       </div>
-                      <div>
-                        <b>App:</b> {cvRequest.geniusApp}
-                      </div>
-                      <div>
-                        {cvRequest.status === 'writing' ? (
-                          <span>
-                            <b>In Progress</b>
-                          </span>
-                        ) : cvRequest.status === 'finalized' ? (
-                          <button
-                            onClick={() => handleViewCV(cvRequest.id)}
-                            className="appWhiteOnOrange text-sm text-gray-800 font-semibold py-2 px-2 border border-gray-400 hover:border-gray-800 rounded-lg"
-                          >
-                            View CV
-                          </button>
-                        ) : null}
+
+                      <div className=" mt-1.5">
+                        <button
+                          onClick={() => handleViewCV(cvRequest.id)}
+                          className={
+                            'w-full  bg-[#FF4F22] hover:opacity-85 text-white text-sm font-semibold py-2 px-2  rounded-xl ' +
+                            (cvRequest.status !== 'finalized'
+                              ? ' bg-gray-500 cursor-not-allowed pointer-events-none  hover:bg-gray-5000 '
+                              : '')
+                          }
+                          disabled={cvRequest.status !== 'finalized'}
+                        >
+                          View CV
+                        </button>
                       </div>
                     </div>
                   </div>
                 ))}
+              {cvRequests.length !== 0 && (
+                <div className={`${isSmallScreen ? 'w-1/2' : 'w-1/2'}`}>
+                  {showCV && selectedCV && (
+                    <div
+                      className={`${
+                        isSmallScreen ? '' : '  sticky top-0 max-h-screen  overflow-auto  '
+                      }`}
+                    >
+                      <div className="fixed inset-0 flex items-center justify-center z-100 p-2 ">
+                        <div
+                          className="bg-black bg-opacity-50 absolute inset-0"
+                          onClick={handleHideCV}
+                        ></div>
+                        <div className="bg-white p-6 rounded-lg shadow-lg z-10 max-w-full sm:max-w-[50vw] max-h-[86vh] mt-16  flex flex-col items-center ">
+                          <div className="flex justify-between items-center mb-4 w-full">
+                            <div className="w-full flex  justify-end ">
+                              <button
+                                onClick={handleHideCV}
+                                className="text-white hover:opacity-75 font-bold bg-red-600 px-3 py-1 rounded-3xl"
+                              >
+                                X
+                              </button>
+                            </div>
+                          </div>
+                          <div className="overflow-auto max-h-[80vh]">
+                            <div dangerouslySetInnerHTML={{ __html: selectedCV }} />
+                            <div dangerouslySetInnerHTML={{ __html: selectedCV }} />
+                          </div>
+                          <div className="flex flex-row gap-5 w-full">
+                            {' '}
+                            <button
+                              onClick={handleDownloadWord}
+                              className="text-white mt-2 hover:opacity-75 bg-blue-700 rounded-lg px-4 py-1 w-1/2 "
+                            >
+                              Download
+                            </button>
+                            <button
+                              onClick={handlePrint}
+                              className="text-white mt-2 hover:opacity-75 bg-gray-700 rounded-lg px-4 py-1 w-1/2"
+                            >
+                              Print
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
-        {cvRequests.length !== 0 && (
-          <div className={`${isSmallScreen ? 'w-full' : 'w-1/2'}`}>
-            {showCV && selectedCV && (
-              <div
-                className={`${isSmallScreen ? '' : 'sticky top-0 max-h-screen overflow-auto'}`}
-              >
-                {isSmallScreen ? (
-                  <div className="fixed inset-0 flex items-center justify-center z-50 p-2">
-                    <div
-                      className="bg-black bg-opacity-50 absolute inset-0"
-                      onClick={handleHideCV}
-                    ></div>
-                    <div className="bg-white p-6 rounded-lg shadow-lg z-10 max-w-full max-h-full overflow-auto">
-                      <div className="flex justify-between items-center mb-4">
-                        <button
-                          onClick={handlePrint}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          Print
-                        </button>
-                        <button
-                          onClick={handleDownloadWord}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          Download as Word
-                        </button>
-                        <button
-                          onClick={handleHideCV}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Close
-                        </button>
-                      </div>
-                      <div dangerouslySetInnerHTML={{ __html: selectedCV }} />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-white border rounded-xl shadow-lg">
-                    <div className="sticky top-0 bg-blue-100 z-10 p-2 rounded-t-xl">
-                      <div className="flex justify-between items-center text-xl px-2">
-                        <button
-                          onClick={handlePrint}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          Print
-                        </button>
-                        <button
-                          onClick={handleDownloadWord}
-                          className="text-blue-500 hover:text-blue-700"
-                        >
-                          Download as Word
-                        </button>
-                        <button
-                          onClick={handleHideCV}
-                          className="text-red-500 hover:text-red-700"
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="px-4" dangerouslySetInnerHTML={{ __html: selectedCV }} />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

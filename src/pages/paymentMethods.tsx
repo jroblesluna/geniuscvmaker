@@ -1,591 +1,366 @@
 import { Button, Input, Modal, ModalContent } from '@nextui-org/react';
-import { getFirestore, doc, getDoc, DocumentReference, collection, updateDoc } from "firebase/firestore";
-import CardIconsList from '../components/cardIconsList';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  DocumentReference,
+  DocumentData,
+} from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { withProtected } from '../hook/route';
 import { toast } from 'react-hot-toast';
 import SvgCancel from '../components/svgCancel';
-import { useRouter } from 'next/router';
-import SvgStar from '../components/svgStar';
 import { Contact, CreditCard } from '../interfaces/culqi';
+import { PaymentMethod } from '../interfaces/stripe';
+import { loadStripe, StripeElementLocale } from '@stripe/stripe-js';
+import { goSubscriptions } from '../utils/navigateRoutes';
+import { capitalize, validateEmail } from '../utils/others';
+import { CardElement, Elements, useElements, useStripe } from '@stripe/react-stripe-js';
 
 const emptyContact = {
+  name: '',
+  number: '',
+  expiry: '',
+  security: '',
+  email: '',
+  errors: {
     name: '',
     number: '',
     expiry: '',
     security: '',
     email: '',
-    errors: {
-        name: '',
-        number: '',
-        expiry: '',
-        security: '',
-        email: '',
-    }
+  },
 };
 
 function PaymentMethods({ auth }) {
-    const { user } = auth;
-    const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
-    const [showModal, setShowModal] = useState(false);
-    const [contact, setContact] = useState<Contact>({ ...emptyContact });
-    const [isLoading, setIsLoading] = useState(false);
-    const [isRemoving, setIsRemoving] = useState(false);
-    const [isFavoriting, setIsFavoriting] = useState(false);
-    const [favoriteCard, setFavoriteCard] = useState('');
-    const [userDocRef, setUserDocRef] = useState<DocumentReference | null>(null);
+  const { user } = auth;
+  const [creditCards, setCreditCards] = useState<CreditCard[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [contact, setContact] = useState<Contact>({ ...emptyContact });
+  const [isLoading, setIsLoading] = useState(false);
 
-    const router = useRouter(); // Initialize Next.js router
+  const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_SECRET_PK_KEY || '');
 
-    const { name, number, expiry, security, email, errors } = contact;
+  const { name, number, expiry, security, email, errors } = contact;
 
-    const lookupFavoriteCard = async () => {
-        console.log("fetchFavoriteCard");
-        try {
-            const firestore = getFirestore();
-            const userDocRef = doc(firestore, "users", user.uid);
-            setUserDocRef(userDocRef);
-            const userDocSnapshot = await getDoc(userDocRef);
-            if (userDocSnapshot.exists()) {
-                const userData = userDocSnapshot.data();
-                console.log("favoriteCard", userData["favoriteCard"]);
-                setFavoriteCard(userData["favoriteCard"] ?? '');
-                return true;
-            } else {
-                console.log("The user document doesn't exist");
-                return false;
-            }
-        } catch (error) {
-            console.error('Error fetching user profile:', error);
-            return false;
-        }
-    };
+  /*Stripe */
+  // Need to be dinamic
+  const [customerId, setCustomerId] = useState('');
+  const [cards, setCards] = useState<PaymentMethod[]>([]);
+  const [clientSecret, setClientSecret] = useState('');
 
+  const options = {
+    locale: 'en' as StripeElementLocale,
+  };
+  useEffect(() => {
+    callFirstime();
+  }, []);
 
-    // Input field onChange handler
-    const handleChange = (e) => {
-        setContact({ ...contact, [e.target.name]: e.target.value });
+  const callFirstime = async () => {
+    try {
+      const res = await fetchUserProfile();
+      await callPaymentMethods(res);
+    } catch (error) {
+      toast.error('Customer Id not found');
     }
+  };
 
-    // Input card expiry onKeyUp handler
-    const handleCardExpiry = (e) => {
-        let expiryDate = e.target.value;
+  const callPaymentMethods = async (customerId: string) => {
+    fetch(`/api/list-payment-methods?customerId=${customerId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setCards(data.paymentMethods.data);
+        setIsLoading(true);
+      })
+      .catch((err) => console.error(err));
+  };
 
-        if (e.keyCode !== 8) {
-            if (expiryDate > 1 && expiryDate.length === 1) {
-                expiryDate = '0' + expiryDate + '/';
-            } else if (expiryDate.length === 2) {
-                expiryDate = expiryDate + '/';
-            }
+  async function fetchUserProfile() {
+    try {
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDocSnapshot = await getDoc(userDocRef);
+      console.log('userDocSnapshot', userDocSnapshot);
+      if (userDocSnapshot.exists()) {
+        const userData = userDocSnapshot.data();
+        setCustomerId(userData.stripeCustomerId);
 
-            setContact({ ...contact, expiry: expiryDate });
-        } else {
-            setContact({ ...contact, expiry: '' });
-        }
+        return userData.stripeCustomerId;
+      } else {
+        console.log("The user document doesn't exist");
+        return '';
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return false;
     }
+  }
 
-    // Input fields validation handler
-    const handleValidation = () => {
-        const { name, number, expiry, security, email, errors } = contact;
-        let formIsValid = true;
+  // Input field onChange handler
+  const handleChange = (e) => {
+    setContact({ ...contact, [e.target.name]: e.target.value });
+  };
 
-        if (!name || name.length < 5) {
-            formIsValid = false;
-            errors['name'] = 'Cardholder name is required (At least 5 letters)';
-        } else {
-            errors['name'] = '';
-        }
+  const handleAddCard = () => {
+    contact.name = user.displayName.toUpperCase();
+    contact.email = user.email;
 
-        // Validate email
-        if (!email || !validateEmail(email)) {
-            formIsValid = false;
-            errors['email'] = 'Email is invalid';
-        } else {
-            errors['email'] = '';
-        }
+    setShowModal(true);
+  };
 
-        if (!number) {
-            formIsValid = false;
-            errors['number'] = 'Card number is required';
-        } else {
-            // Luhn algorithm validation
-            const isValidCardNumber = validateCardNumber(number);
-            if (!isValidCardNumber || number.length < 14) {
-                formIsValid = false;
-                errors['number'] = 'Invalid card number';
-            } else {
-                errors['number'] = '';
-            }
-        }
+  const handleModalClose = async () => {
+    setContact({ ...emptyContact });
+    setShowModal(false);
+  };
 
-        if (!expiry || expiry.length != 5) {
-            formIsValid = false;
-            errors['expiry'] = 'Expiry is required';
-        } else {
-            // Check if expiry date is in the future
-            const [month, year] = expiry.split('/');
-            const currentYear = new Date().getFullYear().toString().slice(-2);
-            const currentMonth = new Date().getMonth() + 1;
-            if (parseInt(year) < parseInt(currentYear) || (parseInt(year) === parseInt(currentYear) && parseInt(month) < currentMonth)) {
-                formIsValid = false;
-                errors['expiry'] = 'Expiry date must be in the future';
-            } else {
-                errors['expiry'] = '';
-            }
-        }
-
-        if (!security) {
-            formIsValid = false;
-            errors['security'] = 'CVV is required';
-        } else {
-            errors['security'] = '';
-        }
-
-        setContact({ ...contact, errors: errors });
-        return formIsValid;
-    }
-
-    // Luhn algorithm for credit card number validation
-    const validateCardNumber = (cardNumber) => {
-        console.log("Chacking...", cardNumber);
-        let sum = 0;
-        let shouldDouble = false;
-        for (let i = cardNumber.length - 1; i >= 0; i--) {
-            let digit = parseInt(cardNumber.charAt(i));
-
-            if (shouldDouble) {
-                if ((digit *= 2) > 9) digit -= 9;
-            }
-
-            sum += digit;
-            shouldDouble = !shouldDouble;
-        }
-        return sum % 10 === 0;
-    }
-
-    // Regular expression for email validation
-    const validateEmail = (email: string): boolean => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-        return emailRegex.test(email);
-    }
-
-    async function createCulqiToken(card_number: string, cvv: string, expiration_month: string, expiration_year: string, email: string) {
-        try {
-            console.log("expiry");
-            console.log(expiry);
-            console.log("expiration_month", expiration_month);
-            console.log("expiration_year", expiration_year);
-            const response = await fetch('/api/culqi', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    culqiMethod: 'create.tokens',
-                    culqiBody: {
-                        "card_number": card_number,
-                        "cvv": cvv,
-                        "expiration_month": expiration_month,
-                        "expiration_year": expiration_year,
-                        "email": email,
-                    }
-                }),
-            });
-            const data = await response.json();
-            console.log('Token data:', data);
-            return (data);
-        } catch (error) {
-            console.error('Error creating token:', error);
-            return null;
-        }
-    }
-
-    async function createCulqiCard(customer_id: string, token_id: string, expiry: string, name: string) {
-        console.log(customer_id);
-        console.log(token_id);
-        console.log(expiry);
-        console.log(name);
-        try {
-            console.log("customer_id", customer_id);
-            console.log("token_id", token_id);
-            const response = await fetch('/api/culqi', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    culqiMethod: 'create.cards',
-                    culqiBody: {
-                        "customer_id": customer_id,
-                        "token_id": token_id,
-                        "metadata": {
-                            "expiry": expiry,
-                            "name": name,
-                        }
-                    }
-                }),
-            });
-            const data = await response.json();
-            console.log('Card data:', data);
-            return (data);
-        } catch (error) {
-            console.error('Error creating card:', error);
-            return null;
-        }
-    }
-
-    async function deleteCulqiCard(culqiCardId: string) {
-        try {
-            console.log("culqiCardId", culqiCardId);
-            const response = await fetch('/api/culqi', {
-                method: 'POST',//Don't get confused, this is always POST
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    culqiMethod: 'delete.cards',
-                    culqiBody: {
-                        "id": culqiCardId
-                    }
-                }),
-            });
-            const data = await response.json();
-            console.log('Deleted Card:', data);
-            return (data);
-        } catch (error) {
-            console.error('Error listing customer:', error);
-            return null;
-        }
-    }
-
-    async function listCulqiCustomerByEmail(email: string) {
-        try {
-            console.log("email", email);
-            const response = await fetch('/api/culqi', {
-                method: 'POST',//Don't get confused, this is always POST
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    culqiMethod: 'list.customers',
-                    culqiBody: {
-                        "email": email
-                    }
-                }),
-            });
-            const data = await response.json();
-            console.log('Customer data:', data);
-            return (data);
-        } catch (error) {
-            console.error('Error listing customer:', error);
-            return null;
-        }
-    }
-
-    // Form onSubmit handler
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        const { name, number, expiry, security, email } = contact;
-
-        if (handleValidation()) {
-            setIsLoading(true);
-            console.log("contact.expiry", contact.expiry);
-            let culqiToken = await createCulqiToken(contact.number, contact.security, contact.expiry.substring(0, 2), "20" + contact.expiry.substring(3, 5), contact.email);
-
-            console.log("culqiToken", culqiToken);
-
-            if (culqiToken.object == "error") {
-                console.log(culqiToken.user_message);
-                toast.error(culqiToken.user_message);
-            }
-            else {
-                const culqiCustomerId = (await listCulqiCustomerByEmail(culqiToken.email)).data[0].id;
-
-                let culqiCard = await createCulqiCard(culqiCustomerId, culqiToken.id, contact.expiry, contact.name);
-
-                console.log("culqiCard", culqiCard);
-
-                if (culqiCard.object == "error") {
-                    console.log(culqiCard.merchant_message);
-                    toast.error(culqiCard.merchant_message);
-                }
-                else {
-                    toast.success("Your card was registered.");
-                    await fetchCards();
-                }
-            }
-
-            setContact({ ...emptyContact });
-            setShowModal(false);
-        }
-
-    }
-
-    // Input onKeyDown numbers only handler
-    const handleNumbersOnly = (e) => {
-
-        let flag;
-
-        if ((e.keyCode === 8) ||
-            (e.keyCode === 9) ||
-            (e.keyCode === 16 && e.keyCode >= 9) ||
-            (e.keyCode === 37) ||
-            (e.keyCode === 39) ||
-            (e.keyCode === 46) ||
-            (e.keyCode >= 48 && e.keyCode <= 57) ||
-            (e.keyCode >= 96 && e.keyCode <= 105)) {
-            flag = false;
-        } else {
-            flag = true;
-        }
-
-        if (flag) {
-            e.preventDefault();
-        }
-    }
-
-    const getCardType = (number) => {
-        if (number !== '' || number !== null) {
-            const amexReg = new RegExp('^3[47]');
-            const dinersReg = new RegExp('^3(?:0[0-5]|[68][0-9])[0-9]{11}$');
-            const masterReg = new RegExp('^5[1-5][0-9]');
-            const visaReg = new RegExp('^4');
-
-            if (number.toString().match(amexReg)) {
-                return 'amex';
-            } else if (number.toString().match(dinersReg)) {
-                return 'diners';
-            } else if (number.toString().match(masterReg)) {
-                return 'mastercard';
-            } else if (number.toString().match(visaReg)) {
-                return 'visa';
-            } else {
-                return 'undefined';
-            }
-        }
-    }
-
-    const fetchCards = async () => {
-        try {
-            const response = await fetch('/api/culqi', {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    culqiMethod: "list.cards",
-                    culqiBody: {}
-                }),
-            });
-            const data = await response.json();
-            console.log(data);
-            setCreditCards(data.data);
-            setIsFavoriting(true);
-            await lookupFavoriteCard();
-            setIsFavoriting(false);
-        } catch (error) {
-            console.error('Error fetching credit cards:', error);
-        }
-    };
+  function SetupForm() {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [cardComplete, setCardComplete] = useState(false);
 
     useEffect(() => {
-        fetchCards();
-    }, []);
+      if (clientSecret === '' && customerId !== '') {
+        fetch('/api/create-setup-intent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerId: customerId,
+            email: '',
+            name: '',
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            setClientSecret(data.setupIntent);
+            setCustomerId(data.customerId);
+          })
+          .catch((error) => console.error('Error:', error));
+      }
+    }, [customerId]);
 
-    const handleAddCard = () => {
-        contact.name = user.displayName.toUpperCase();
-        contact.email = user.email;
-        setIsLoading(false);
-        setShowModal(true);
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+
+      if (!cardComplete) {
+        toast.error('Please enter your card details.');
+        return;
+      }
+
+      if (!stripe || !elements || !clientSecret) {
+        toast.error('Falta datos');
+        return;
+      }
+
+      const cardElement = elements.getElement(CardElement);
+
+      const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+        payment_method: {
+          card: cardElement!,
+          billing_details: {
+            name: name,
+            email: email,
+          },
+        },
+      });
+
+      if (error) {
+        toast.error('Error saving card');
+        console.log('Error saving card', error.message);
+      } else {
+        toast.success('Card saved successfully');
+        console.log('Card saved successfully:', setupIntent);
+        callPaymentMethods(customerId);
+        handleModalClose();
+      }
     };
-
-    const handleModalClose = async () => {
-        setContact({ ...emptyContact });
-        setShowModal(false);
-    };
-
-    const handleRemoveCard = async (culqiCardId: string) => {
-        setIsRemoving(true);
-        let removalResponse = await deleteCulqiCard(culqiCardId);
-        if (removalResponse.deleted) {
-            toast.success("Card was successfully deleted.")
-            await fetchCards();
-        }
-        else {
-            toast.error(removalResponse.merchant_message);
-        }
-        setIsRemoving(false);
-        console.log(removalResponse);
-    }
-
-    const handleSetFavoriteCard = async (culqiCardId: string) => {
-        if (userDocRef && favoriteCard != culqiCardId) {
-            setIsFavoriting(true);
-            await updateDoc(userDocRef, { favoriteCard: culqiCardId });
-            await lookupFavoriteCard();
-            setIsFavoriting(false);
-        }
-    }
-
-    function goSubscriptions() {
-        router.push('/subscriptions')
-    }
 
     return (
-        <div className='container mx-auto px-6'>
-            <h1 className=' text-3xl font-bold my-4 text-center'>My Payment Methods</h1>
-            <div>You need to have at least one registered Card to buy a Subscription.</div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 justify-items-center">
-                {creditCards.map((card, index) => (
-                    <div key={index} className="bg-gradient-to-tr from-blue-950 to-blue-300 rounded-md p-3 w-80 shadow-blue-950 shadow-md">
-                        <div className="flex flex-cols-2 items-start">
-                            <div className='w-full'>
-                                <span className='text-md embossed'>{card.source.iin.issuer.name}</span>
-                            </div>
-                            <Button
-                                isLoading={isRemoving}
-                                isIconOnly
-                                className='text-red-500'
-                                variant='light'
-                                size="sm"
-                                onClick={() => handleRemoveCard(card.id)}>
-                                <SvgCancel />
-                            </Button>
-                        </div>
-                        <div className="flex items-center justify-center mt-4">
-                            <span className="text-lg embossed">{`**** ${card.source.card_number.length === 16 ? '**** **** ' : '****** '}${card.source.card_number.length === 15 ? '*' : ''}${card.source.last_four}`}</span>
-                        </div>
-                        <div className="flex items-center justify-center mb-2">
-                            <Button
-                            isLoading={isFavoriting}
-                                className='text-yellow-500 text-md'
-                                variant="light"
-                                onClick={() => handleSetFavoriteCard(card.id)}
-                                startContent={
-                                    <SvgStar fillColor={(card.id === favoriteCard) ? "#FFD122" : "transparent"} />
-                                }>Mark Favorite</Button>
-                        </div>
-                        <div className="flex flex-cols-2 items-center">
-                            <div className='w-full'>
-                                <div className='text-gray-300'>
-                                    <span className='text-md'>EXP:</span> <span className='text-xs embossed'>{card.metadata.expiry}</span>
-                                </div>
-                                <div className='text-sm embossed'>
-                                    {card.metadata.name}
-                                </div>
-                            </div>
-                            <img
-                                src={`/assets/svg/${card.source.iin.card_brand.toLowerCase()}.svg`}
-                                alt={card.source.iin.card_brand}
-                                className="h-10 rounded-md border-1" />
-
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <div className='mt-4'>
-                <Button className='appWhiteOnBlue' onClick={handleAddCard}>Register New Card</Button>
-            </div>
-            <div className='mt-4'>
-                <Button className='appBlackOnCitrine' onClick={goSubscriptions}>Buy Subscriptions</Button>
-            </div>
-            <Modal
-                isOpen={showModal}
-                onClose={handleModalClose}
-                backdrop="blur">
-                <ModalContent>
-                    <div className="p-4 flex flex-col gap-4">
-                        <h2 className="text-xl font-bold">Add New Card</h2>
-                        <div
-                            className='grid grid-cols-1'>
-                            <Input
-                                className='h-20'
-                                key="cardholderName"
-                                label="Card Holder Name"
-                                name="name"
-                                value={name}
-                                variant="flat"
-                                radius='none'
-                                size='sm'
-                                maxLength={50}
-                                onChange={handleChange}
-                                errorMessage={errors.name}
-                            />
-                            <Input
-                                className='h-20'
-                                key="cardholderEmail"
-                                label="Card Holder Email"
-                                name="email"
-                                value={email}
-                                variant="flat"
-                                radius='none'
-                                size='sm'
-                                maxLength={50}
-                                onChange={handleChange}
-                                errorMessage={errors.email}
-                            />
-                            <Input
-                                autoFocus
-                                className='h-20'
-                                key="cardNumber"
-                                label="Card Number"
-                                name="number"
-                                value={number}
-                                variant="flat"
-                                radius='none'
-                                size='sm'
-                                minLength={14}
-                                maxLength={16}
-                                onKeyDown={handleNumbersOnly}
-                                onChange={handleChange}
-                                errorMessage={errors.number}
-                                endContent={<CardIconsList type={getCardType(number)} />}
-                            />
-                            <div className='grid grid-cols-2 gap-4'>
-                                <Input
-                                    className='h-20'
-                                    key="cardExpiry"
-                                    label="Expiry Date MM/YY"
-                                    name="expiry"
-                                    value={expiry}
-                                    variant="flat"
-                                    radius='none'
-                                    size='sm'
-                                    minLength={5}
-                                    maxLength={5}
-                                    onChange={handleChange}
-                                    onKeyDown={handleNumbersOnly}
-                                    onKeyUp={handleCardExpiry}
-                                    errorMessage={errors.expiry}
-                                />
-                                <Input
-                                    className='h-20'
-                                    key="cardCvv"
-                                    label="CVV / CVC / CID"
-                                    name="security"
-                                    value={security}
-                                    variant="flat"
-                                    radius='none'
-                                    size='sm'
-                                    minLength={3}
-                                    maxLength={4}
-                                    onKeyDown={handleNumbersOnly}
-                                    onChange={handleChange}
-                                    errorMessage={errors.security}
-                                />
-                            </div>
-                            <Button
-                                color="primary"
-                                onClick={handleSubmit}
-                                isLoading={isLoading}
-                            >ADD CARD</Button>
-                        </div>
-                    </div>
-                </ModalContent>
-            </Modal>
-        </div>
+      <form onSubmit={handleSubmit} className="min-h-[20vh] flex flex-col gap-5">
+        <CardElement
+          className="bg-[#E4E4E7] justify-center  h-10 p-2 flex flex-col border"
+          onChange={(event) => {
+            setCardComplete(event.complete);
+          }}
+        />
+        <button
+          type="submit"
+          disabled={!stripe}
+          className="w-full bg-blue-700 text-white hover:opacity-80 p-2 font-bold rounded-md"
+        >
+          Add Card
+        </button>
+      </form>
     );
+  }
+
+  async function handleRemoveCard(id: string): Promise<void> {
+    try {
+      const response = await fetch('/api/delete-payment-method', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ paymentMethodId: id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error('Error deleting card');
+        console.error('Error deleting card:', errorData.error);
+        // Aquí puedes mostrar un mensaje de error al usuario
+        return;
+      }
+      toast.success('Card removed successfully');
+      callPaymentMethods(customerId);
+    } catch (error) {
+      console.error('Error deleting card:', error);
+    }
+  }
+  return (
+    <div className="container mx-auto px-6 flex flex-col justify-between min-h-[90vh]">
+      <div className="flex flex-col">
+        <div className="mb-5 flex  items-center justify-center ">
+          <div className="text-3xl font-bold  mt-5">My Payment Methods</div>
+        </div>
+        {!isLoading ? (
+          <div className="text-center flex flex-col items-center h-[50vh] justify-center  mx-auto  ">
+            <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+            <p className="mt-2">Loading...</p>
+          </div>
+        ) : (
+          <>
+            <div className="w-full flex flex-col sm:flex-row justify-between gap-3 items-center">
+              {!cards || cards.length === 0 ? (
+                <div>You need to have at least one registered Card to buy a Subscription.</div>
+              ) : (
+                <div>View and manage the payment method s in your account.</div>
+              )}
+              <Button className="appWhiteOnBlue  w-full sm:w-60" onClick={handleAddCard}>
+                Register New Card
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 justify-items-center  ">
+              {!cards || cards.length === 0 ? (
+                <div
+                  className="bg-[#cdf3f9] cursor-pointer border-sky-300 hover:opacity-85 shadow-lg rounded-md px-4 py-4 w-full  border-2 min-h-[200px] flex flex-col items-center justify-center"
+                  onClick={handleAddCard}
+                >
+                  <div className="flex flex-col items-center text-sky-500">
+                    <span className="text-6xl">+</span>
+                    <span>Register New Card</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {cards.map((card) => (
+                    <div
+                      key={card.id}
+                      className="bg-[#3d71f2] text-white hover:border-gray-500 shadow-lg rounded-md px-4 py-4 w-full  border-2 min-h-[200px] flex flex-col justify-between"
+                    >
+                      <div className="flex flex-cols-2 items-start">
+                        <div className="w-full flex flex-row gap-1 justify-between">
+                          <div className="flex flex-col  items-start">
+                            <span className="text-md font-bold ">
+                              {capitalize(card.card.brand)}
+                            </span>
+                            <img
+                              src={`https://cdn-icons-png.flaticon.com/256/9334/9334627.png`}
+                              alt={card.card.brand}
+                              width={100}
+                              className="h-16  w-fit bg-transparent "
+                            />
+                          </div>
+                          <div className="flex flex-col  justify-start   items-end  ">
+                            <Button
+                              isIconOnly
+                              className="text-red-500"
+                              variant="light"
+                              size="sm"
+                              onClick={() => handleRemoveCard(card.id)}
+                            >
+                              <SvgCancel />
+                            </Button>
+                            <img
+                              src={`/assets/svg/${card.card.brand.toLowerCase()}.svg`}
+                              alt={card.card.brand}
+                              width={65}
+                              className="h-14 rounded-md "
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col py-2 font-bold">
+                        <div>
+                          <span>{card.billing_details.name}</span>
+                        </div>
+                        <div className="flex flex-row items-center  justify-between">
+                          <span className=" ">{`**** **** **** ${card.card.last4}`}</span>
+                          <span>{` ${card.card.exp_month}/${card.card.exp_year}`}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+
+            {cards.length !== 0 && (
+              <div className="mt-4 w-full flex justify-end mb-10 ">
+                <Button
+                  className="appBlackOnCitrine  w-full sm:w-60"
+                  onClick={goSubscriptions}
+                >
+                  Buy Subscriptions
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      <Modal isOpen={showModal} onClose={handleModalClose} backdrop="blur">
+        <ModalContent>
+          <div className="p-4 flex flex-col gap-4">
+            <h2 className="text-xl font-bold">Add New Card</h2>
+            <div className="grid grid-cols-1">
+              <Input
+                className="h-20"
+                key="cardholderName"
+                label="Card Holder Name"
+                name="name"
+                value={name}
+                variant="flat"
+                radius="none"
+                size="sm"
+                maxLength={50}
+                onChange={handleChange}
+                errorMessage={errors.name}
+              />
+              <Input
+                className="h-20"
+                key="cardholderEmail"
+                label="Card Holder Email"
+                name="email"
+                value={email}
+                variant="flat"
+                radius="none"
+                size="sm"
+                maxLength={50}
+                onChange={handleChange}
+                errorMessage={errors.email}
+              />
+
+              <Elements stripe={stripePromise} options={options}>
+                <SetupForm />
+              </Elements>
+            </div>
+          </div>
+        </ModalContent>
+      </Modal>
+    </div>
+  );
 }
 
 export default withProtected(PaymentMethods);

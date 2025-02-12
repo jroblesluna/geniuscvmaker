@@ -35,7 +35,7 @@ function Index({ auth }) {
       <div className="snap-y snap-mandatory h-screen w-screen overflow-scroll">
         <div className="snap-start relative h-screen overflow:hidden">
           <div
-            className="absolute inset-0 w-full h-full bg-cover bg-center sm:origin-right md:origin-bottom lg:origin-bottom xl:origin-bottom-right opacity-[90%]"
+            className="absolute inset-0 w-full h-full bg-cover bg-center sm:origin-right md:origin-bottom lg:origin-bottom xl:origin-bottom-right opacity-[95%]"
             style={{
               backgroundImage: `url(${backgrounds[backgroundIndex]})`,
               transition: 'background-image 1s ease',

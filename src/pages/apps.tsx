@@ -1,22 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router'; // Import Next.js router
 import { withProtected, withPublic } from '../hook/route';
+import { goScratch, goCraft, goOptimize, goSpotlight } from '../utils/navigateRoutes';
 function Apps({ auth }) {
   const router = useRouter(); // Initialize Next.js router
 
   const { logout } = auth;
-  function goScratch() {
-    router.push('/scratch');
-  }
-  function goCraft() {
-    router.push('/craft');
-  }
-  function goOptimize() {
-    router.push('/optimize');
-  }
-  function goSpotlight() {
-    router.push('/spotlight');
-  }
 
   return (
     <>

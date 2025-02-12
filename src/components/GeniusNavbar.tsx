@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Navbar,
   NavbarBrand,
@@ -7,9 +7,7 @@ import {
   NavbarMenuToggle,
   NavbarMenu,
   NavbarMenuItem,
-  Link,
-  Button,
-  menuItem,
+  user,
 } from '@nextui-org/react';
 import { useRouter } from 'next/router'; // Import Next.js router
 
@@ -19,12 +17,26 @@ import SvgApps from './svgApps';
 import SvgList from './svgList';
 import SvgLogout from './svgLogout';
 import SvgWallet from './svgWallet';
+import {
+  goHome,
+  goScratch,
+  goCraft,
+  goOptimize,
+  goSpotlight,
+  goPaymentMethods,
+  goSubscriptions,
+  goProfile,
+  goApps,
+  goList,
+  goSupport,
+} from '../utils/navigateRoutes';
+import { getFirestore, doc, getDoc, DocumentData } from '@firebase/firestore';
 
 function GeniusNavbar({ auth }) {
   const router = useRouter(); // Initialize Next.js router
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const { logout } = auth;
-
+  const [userData, setUserData] = useState<DocumentData | null>(null);
+  const { user, setUser, logout } = auth;
   const menuItems = [
     { path: '/', command: goHome, name: 'Home' },
     { path: '/profile', command: goProfile, name: 'My Profile' },
@@ -40,38 +52,29 @@ function GeniusNavbar({ auth }) {
     { path: '/logout', command: logout, name: 'Log Out' },
   ];
 
-  function goHome() {
-    router.push('/');
-  }
-  function goProfile() {
-    router.push('/profile');
-  }
-  function goApps() {
-    router.push('/apps');
-  }
-  function goScratch() {
-    router.push('/scratch');
-  }
-  function goCraft() {
-    router.push('/craft');
-  }
-  function goOptimize() {
-    router.push('/optimize');
-  }
-  function goSpotlight() {
-    router.push('/spotlight');
-  }
-  function goList() {
-    router.push('/cvList');
-  }
-  function goPaymentMethods() {
-    router.push('/paymentMethods');
-  }
-  function goSubscriptions() {
-    router.push('/subscriptions');
-  }
-  function goSupport() {
-    router.push('/support');
+  useEffect(() => {
+    fetchUserProfile();
+  });
+
+  async function fetchUserProfile() {
+    console.log('fetchUserProfile');
+    try {
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDocSnapshot = await getDoc(userDocRef);
+      console.log('userDocSnapshot', userDocSnapshot);
+      if (userDocSnapshot.exists()) {
+        const userData = userDocSnapshot.data();
+        setUserData(userData);
+        return true;
+      } else {
+        console.log("The user document doesn't exist");
+        return false;
+      }
+    } catch (error) {
+      console.error('Error fetching user tokens:', error);
+      return false;
+    }
   }
 
   return (
@@ -82,9 +85,9 @@ function GeniusNavbar({ auth }) {
             aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             style={{ color: '#FF4F22' }}
           />
-          <NavbarMenu className="p-0 gap-0 mt-2">
+          <NavbarMenu className="p-0 gap-0 mt-2 bg-white opacity-95">
             {menuItems.map((item, index) => (
-              <NavbarMenuItem key={`${item.path}-${index}`} className="list-none   ">
+              <NavbarMenuItem key={`${item.path}-${index}`} className="list-none ">
                 <div
                   className={`w-full border py-1 px-2 hover:bg-gray-100  cursor-pointer topic-text-${
                     router.pathname === item.path
@@ -163,7 +166,7 @@ function GeniusNavbar({ auth }) {
               <div className="rounded-md  px-1 py-0.5 appBlackOnCitrine flex flex-row -mt-1">
                 <SvgWallet />
                 <div className="text-xs text-center flex justify-center items-center md:text-sm ">
-                  10000
+                  {userData ? userData.tokens : ''}
                 </div>
               </div>
             </div>

@@ -51,11 +51,11 @@ export const SocialCardInput: React.FC<SocialCardProps> = ({
       name={name}
       isRequired={false}
       value={userData?.[name]}
+      placeholder={baseUrl}
       onChange={handleInputChange}
       startContent={
         <>
           <img src={`/assets/svg/${name}.svg`} width={30} className="mr-1" />
-          <span className="text-default-400 text-sm    ">{baseUrl}</span>
         </>
       }
       className="w-full sm:max-w-[270px] h-fit  text-default-400 text-sm   "

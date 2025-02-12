@@ -248,6 +248,9 @@ function Profile({ auth }) {
                         value={userData[field]}
                         onChange={(e) => handleChange(e, field)}
                         onKeyDown={(e) => handleKeyDown(e, field)}
+                        placeholder={
+                          socialLinks.find((link) => link.name === field)?.baseUrl || ''
+                        }
                         onFocus={handleFocus}
                         startContent={
                           <>
@@ -256,10 +259,6 @@ function Profile({ auth }) {
                               width={20}
                               className="mr-1"
                             />
-                            <span className="text-default-400 text-sm">
-                              {socialLinks.find((link) => link.name === field)?.baseUrl ||
-                                null}
-                            </span>
                           </>
                         }
                         className="w-full mr-2"
@@ -308,14 +307,19 @@ function Profile({ auth }) {
                           width={20}
                           className="ml-3 my-2.5 mr-1"
                         />
-                        <span className="text-default-400 text-small">
-                          {socialLinks.find((link) => link.name === field)?.baseUrl || null}
-                        </span>
                       </>
                     );
                 }
               })()}
-              <span className="mr-4 py-2 w-full">{userData[field]}</span>
+              {userData[field] !== undefined ? (
+                <span className=" px-2 text-default-400 text-small w-full line-clamp-3">
+                  {userData[field]}
+                </span>
+              ) : (
+                <span className=" px-2 text-default-400 text-small w-full ">
+                  {socialLinks.find((link) => link.name === field)?.baseUrl || null}
+                </span>
+              )}
               <button onClick={() => handleEditField(field)} className="topic-title-blue">
                 <SvgEdit />
               </button>
@@ -369,7 +373,7 @@ function Profile({ auth }) {
       {!profileLoading && userData && user ? (
         <div className="container mx-auto px-4 py-4 max-w-lg lg:max-w-[70%] ">
           <div className="  text-center lg:text-start  mb-8 ">
-            <h1 className="text-3xl font-bold text-gray-800 mb-4">{userData.displayName}</h1>
+            <h1 className="text-3xl font-bold text-gray-800 mb-4 ">{userData.displayName}</h1>
             <img
               src={userData.photoURL}
               className="mx-auto lg:mx-0 rounded-full w-24 h-24"
@@ -465,7 +469,7 @@ function Profile({ auth }) {
             </div>
           </div>
 
-          <div className="mb-4 text-xs text-center hidden lg:block">
+          <div className="mb-4 text-xs text-center hidden lg:block mt-3">
             <p className="font-light">
               Google UID: <span>{user.uid}</span>
             </p>

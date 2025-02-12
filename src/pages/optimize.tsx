@@ -4,6 +4,7 @@ import { withProtected } from '../hook/route';
 import { Button } from '@nextui-org/react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/router';
+import toast from 'react-hot-toast';
 
 function Optimize({ auth }) {
   const { user } = auth;
@@ -11,7 +12,9 @@ function Optimize({ auth }) {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
   const [downloadURL, setDownloadURL] = useState<string | null>(null);
+
   const router = useRouter();
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const onDrop = (acceptedFiles: File[], fileRejections: any) => {
     // Reset previous state
@@ -27,6 +30,7 @@ function Optimize({ auth }) {
 
     if (acceptedFiles.length > 0) {
       setFile(acceptedFiles[0]);
+      setPreviewUrl(URL.createObjectURL(acceptedFiles[0]));
     }
   };
 
@@ -69,13 +73,51 @@ function Optimize({ auth }) {
         const downloadURL = await getDownloadURL(snapshot.ref);
         setDownloadURL(downloadURL);
         setUploading(false);
-        alert('File uploaded successfully');
+        toast.success('File uploaded successfully');
+        return downloadURL;
       } catch (error) {
         console.error('Upload failed:', error);
         setError('Upload failed. Please try again.');
         setUploading(false);
       }
     }
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const ulr = await uploadFileToFirebase();
+    if (!ulr) {
+      toast.error('Error: File link not found.');
+    } else {
+      setUploading(true);
+      const response = await fetch('/api/geniuscvmaker', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid: user.uid,
+          geniusApp: 'optimize',
+          geniusBody: {
+            url_cv: ulr,
+          },
+          status: 'writing',
+        }),
+      });
+      const data = await response.json();
+      if (data.requestPath != undefined) {
+        toast.success('You created a new CV Request: ' + data.requestPath.split('/').pop());
+      } else {
+        toast.error('Error creating CV request. Please contact Support.');
+      }
+
+      router.push('/cvList');
+    }
+  };
+
+  const clearPreviewFile = () => {
+    setFile(null);
+    setPreviewUrl(null);
   };
 
   return (
@@ -86,45 +128,53 @@ function Optimize({ auth }) {
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="w-full m-1 rounded-xl ">
-          <div className="w-full md:w-auto flex  items-center  justify-center  h-[50vh]">
-            <div
-              {...getRootProps({ className: 'dropzone' })}
-              style={dropzoneStyle}
-              className="hover:opacity-75 h-[25vh] my-auto  "
-            >
-              <img
-                src="https://www.svgrepo.com/show/28557/upload-sign.svg"
-                width={35}
-                className="mx-auto my-3"
-              />
-              <input {...getInputProps()} />
-              <p>Drag and drop a file here, or click to select a file</p>
-              <em>(Only DOC, DOCX and PDF files with a maximum size of 10MB are accepted)</em>
-            </div>
-            <div>
-              {error && <p style={{ color: 'red' }}>{error}</p>}
-              {file && (
-                <div>
-                  <p>File ready to Optimize:</p>
-                  <p className="text-green-700 font-bold">{file.name}</p>
-                  <Button
-                    className="appBlackOnCitrine w-1/2"
-                    onClick={uploadFileToFirebase}
-                    disabled={uploading}
-                  >
-                    {uploading ? 'Uploading...' : 'Optimize CV'}
-                  </Button>
+          <div className="w-full md:w-auto flex  items-center  justify-center  h-auto md:h-[50vh]   ">
+            {!previewUrl ? (
+              <div
+                {...getRootProps({ className: 'dropzone' })}
+                style={dropzoneStyle}
+                className="hover:opacity-75  h-[30vh] my-auto min-w-[50vw] flex flex-col justify-center "
+              >
+                <img
+                  src="https://www.svgrepo.com/show/28557/upload-sign.svg"
+                  width={35}
+                  className="mx-auto my-3"
+                />
+                <input {...getInputProps()} />
+                <p>Drag and drop a file here, or click to select a file</p>
+                <em>
+                  (Only DOC, DOCX and PDF files with a maximum size of 10MB are accepted)
+                </em>
+              </div>
+            ) : (
+              <div className=" flex md:flex-row-reverse  flex-col-reverse  gap-10 items-center  mt-2 md:mt-24">
+                {error && <p style={{ color: 'red' }}>{error}</p>}
+                {file && (
+                  <div className="w-fit flex flex-col items-end">
+                    <div
+                      className="bg-red-600 w-fit text-white font-bold px-3 py-1 rounded-full text-[18px] cursor-pointer hover:opacity-85 "
+                      onClick={clearPreviewFile}
+                    >
+                      x
+                    </div>
+                    <div className="flex flex-col gap-1 max-w-[80vw] min-w-[80vw]  md:max-w-[30vw]  md:min-w-[30vw]">
+                      <p>File ready to Optimize:</p>
+                      <p className="text-gray-700 font-bold">{file.name}</p>
+                      <Button
+                        className="appBlackOnCitrine w-full mt-1"
+                        onClick={handleSubmit}
+                        disabled={uploading}
+                      >
+                        {uploading ? 'Uploading...' : 'Optimize CV'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                <div className="max-w-[90vw] min-w-[90vw]  md:max-w-[50vw]  md:min-w-[50vw]">
+                  {previewUrl && <iframe src={previewUrl} width="100%" height="500px" />}
                 </div>
-              )}
-              {downloadURL && (
-                <div>
-                  <p>Download URL:</p>
-                  <a href={downloadURL} target="_blank" rel="noopener noreferrer">
-                    {downloadURL}
-                  </a>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

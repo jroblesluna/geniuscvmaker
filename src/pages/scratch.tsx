@@ -91,17 +91,17 @@ function Scratch({ auth }) {
         },
         body: JSON.stringify({
           uid: user.uid,
-          firstName: userData?.firstName,
-          lastName: userData?.lastName,
-          email: userData?.email,
-          telephoneNumber: userData?.telephoneNumber,
-          about: userData?.about,
-          facebook: userData?.facebook,
-          instagram: userData?.instagram,
-          linkedin: userData?.linkedin,
-          tiktok: userData?.tiktok,
-          youtube: userData?.youtube,
-          github: userData?.github,
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          telephoneNumber: userData?.telephoneNumber || '',
+          about: userData?.about || '',
+          facebook: userData?.facebook || '',
+          instagram: userData?.instagram || '',
+          linkedin: userData?.linkedin || '',
+          tiktok: userData?.tiktok || '',
+          youtube: userData?.youtube || '',
+          github: userData?.github || '',
           geniusApp: 'scratch',
           geniusBody: answers,
           status: 'writing',
@@ -235,16 +235,6 @@ function Scratch({ auth }) {
     },
   ];
 
-  const goPrev = () => {
-    setSelectedTab(
-      selectedTab === 'tab.finish'
-        ? 'tab.experience'
-        : selectedTab === 'tab.experience'
-        ? 'tab.skills'
-        : 'tab.you'
-    );
-  };
-
   // Cálculo del porcentaje de avance
   const totalQuestions = Object.keys(answers).length;
   const completedQuestions = Object.values(answers).filter(
@@ -351,7 +341,7 @@ function Scratch({ auth }) {
         </div>
 
         <div className="flex flex-col items-start ">
-          <div className="my-4 topic-title-blue">
+          <div className="my-4 text-black font-bold">
             Step 1: Please review the following information, it's going to be used for generate
             your CV.
           </div>
@@ -436,7 +426,7 @@ function Scratch({ auth }) {
 
         <form onSubmit={handleSubmit} className="mt-10">
           <div className="flex flex-col items-center ">
-            <div className="my-4 topic-title-blue">
+            <div className="my-4 text-black font-bold">
               Step Two: Please answer the following questions. Be honest and as detailed as you
               can. The more information you provide, the better our AI will be able to
               structure your information.
