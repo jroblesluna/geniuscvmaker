@@ -32,7 +32,7 @@ function Index({ auth }) {
 
   return (
     <>
-      <div className="snap-y snap-mandatory h-screen w-screen overflow-scroll">
+      <div className="snap-y snap-mandatory h-screen w-screen overflow-x-hidden">
         <div className="snap-start relative h-screen overflow:hidden">
           <div
             className="absolute inset-0 w-full h-full bg-cover bg-center sm:origin-right md:origin-bottom lg:origin-bottom xl:origin-bottom-right opacity-[95%]"

@@ -5,6 +5,7 @@ import { Button } from '@nextui-org/react';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
+import { doc, getDoc, getFirestore, updateDoc } from '@firebase/firestore';
 
 function Optimize({ auth }) {
   const { user } = auth;
@@ -83,13 +84,37 @@ function Optimize({ auth }) {
     }
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    const ulr = await uploadFileToFirebase();
-    if (!ulr) {
-      toast.error('Error: File link not found.');
-    } else {
+    const TOKENS_PAY = 20;
+    try {
       setUploading(true);
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (!docSnap.exists()) {
+        toast.error('User document not found.');
+        setUploading(false);
+        return;
+      }
+
+      const currentTokens = docSnap.data()?.tokens || 0;
+      const newTokens = currentTokens - TOKENS_PAY;
+
+      if (newTokens < 0) {
+        toast.error("You don't have enough tokens");
+        setUploading(false);
+        return;
+      }
+
+      const url = await uploadFileToFirebase();
+      if (!url) {
+        toast.error('Error: File link not found.');
+        setUploading(false);
+        return;
+      }
+
       const response = await fetch('/api/geniuscvmaker', {
         method: 'POST',
         headers: {
@@ -98,20 +123,32 @@ function Optimize({ auth }) {
         body: JSON.stringify({
           uid: user.uid,
           geniusApp: 'optimize',
-          geniusBody: {
-            url_cv: ulr,
-          },
+          geniusBody: { url_cv: url },
           status: 'writing',
         }),
       });
-      const data = await response.json();
-      if (data.requestPath != undefined) {
-        toast.success('You created a new CV Request: ' + data.requestPath.split('/').pop());
-      } else {
-        toast.error('Error creating CV request. Please contact Support.');
+
+      if (!response.ok) {
+        throw new Error('Failed to create CV request');
       }
 
-      router.push('/cvList');
+      const data = await response.json();
+      if (data.requestPath) {
+        await updateDoc(userDocRef, { tokens: newTokens });
+        auth.setUser((prevUser) => ({
+          ...prevUser,
+          tokens: newTokens,
+        }));
+        toast.success(`You created a new CV Request: ${data.requestPath.split('/').pop()}`);
+        router.push('/cvList');
+      } else {
+        throw new Error('Invalid response data');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('An unexpected error occurred. Please try again or contact Support.');
+    } finally {
+      setUploading(false);
     }
   };
 

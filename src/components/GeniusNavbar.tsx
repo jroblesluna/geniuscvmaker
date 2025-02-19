@@ -54,15 +54,13 @@ function GeniusNavbar({ auth }) {
 
   useEffect(() => {
     fetchUserProfile();
-  });
+  }, [auth.user]);
 
   async function fetchUserProfile() {
-    console.log('fetchUserProfile');
     try {
       const firestore = getFirestore();
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDocSnapshot = await getDoc(userDocRef);
-      console.log('userDocSnapshot', userDocSnapshot);
       if (userDocSnapshot.exists()) {
         const userData = userDocSnapshot.data();
         setUserData(userData);

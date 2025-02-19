@@ -1,3 +1,5 @@
+import { encode, decode } from 'punycode';
+
 export function isValidURL(text: string): boolean {
   const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d+)?(\/.*)?$/;
   return urlPattern.test(text);
@@ -47,4 +49,17 @@ export function getCurrencySymbol(currency: string = 'usd'): string {
   };
 
   return currencySymbols[currency.toLowerCase()] || currency.toUpperCase();
+}
+
+const MAX_TOKENS = 3500;
+
+export function trimToMaxTokens(text: string, maxTokens: number = MAX_TOKENS): string {
+  const tokens = encode(text);
+
+  if (tokens.length <= maxTokens) {
+    return text; // No es necesario recortar
+  }
+
+  const trimmedTokens = tokens.slice(0, maxTokens); // Cortar hasta el límite
+  return decode(trimmedTokens); // Decodificar a texto nuevamente
 }

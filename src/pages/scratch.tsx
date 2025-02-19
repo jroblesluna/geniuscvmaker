@@ -1,24 +1,15 @@
-import { getFirestore, doc, getDoc, DocumentData } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, DocumentData, updateDoc } from 'firebase/firestore';
 import React, { useState, useEffect } from 'react';
-import { Tabs, Tab, Card, CardBody, Button, Textarea, Input } from '@nextui-org/react';
-import { useRouter } from 'next/router'; // Import Next.js router
+import { Button, Textarea, Input } from '@nextui-org/react';
 import { toast } from 'react-hot-toast';
 import { withProtected } from '../hook/route';
 import { SocialCardInput } from '../components/SocialCardInput';
-
-const socialLinks = [
-  { name: 'facebook', baseUrl: 'https://facebook.com/' },
-  { name: 'instagram', baseUrl: 'https://instagram.com/' },
-  { name: 'linkedin', baseUrl: 'https://linkedin.com/in/' },
-  { name: 'tiktok', baseUrl: 'https://tiktok.com/@' },
-  { name: 'youtube', baseUrl: 'https://youtube.com/@' },
-  { name: 'github', baseUrl: 'https://github.com/' },
-];
+import { goCVList } from '../utils/navigateRoutes';
+import { socialLinks } from '../utils/consts';
 
 function Scratch({ auth }) {
-  const { user, setUser, logout } = auth;
+  const { user } = auth;
   const [userData, setUserData] = useState<DocumentData | null>(null);
-  const router = useRouter(); // Initialize Next.js router
   const [answers, setAnswers] = useState({
     passion: '',
     field_of_study: '',
@@ -30,6 +21,15 @@ function Scratch({ auth }) {
     activities: '',
     envision: '',
   });
+
+  const [selectedQuestion, setSelectedQuestion] = useState<{
+    key: string;
+    question: string;
+    label: string;
+    example: string;
+    description: string;
+  } | null>(null);
+
   const [socialMedia, setSocialMedia] = useState('');
   const [selectedTab, setSelectedTab] = useState('tab.you');
   const [focusedTextarea, setFocusedTextarea] = useState('passion');
@@ -81,8 +81,25 @@ function Scratch({ auth }) {
       // Handle submission logic here
       setIsProcessing(true);
       setFocusedTextarea('');
-      console.log('Submitting Form:', answers);
-      console.log('userData', userData);
+      const TOKENS_PAY = 20;
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (!docSnap.exists()) {
+        toast.error('User document not found.');
+        setIsProcessing(false);
+        return;
+      }
+
+      const currentTokens = docSnap.data()?.tokens || 0;
+      const newTokens = currentTokens - TOKENS_PAY;
+
+      if (newTokens < 0) {
+        toast.error("You don't have enough tokens");
+        setIsProcessing(false);
+        return;
+      }
 
       const response = await fetch('/api/geniuscvmaker', {
         method: 'POST', //Don't get confused, this is always POST
@@ -109,12 +126,17 @@ function Scratch({ auth }) {
       });
       const data = await response.json();
       if (data.requestPath != undefined) {
+        await updateDoc(userDocRef, { tokens: newTokens });
+        auth.setUser((prevUser) => ({
+          ...prevUser,
+          tokens: newTokens,
+        }));
         toast.success('You created a new CV Request: ' + data.requestPath.split('/').pop());
       } else {
         toast.error('Error creating CV request. Please contact Support.');
       }
 
-      router.push('/cvList');
+      goCVList();
     }
   };
 
@@ -235,7 +257,7 @@ function Scratch({ auth }) {
     },
   ];
 
-  // Cálculo del porcentaje de avance
+  // Calculating the percentage of progress
   const totalQuestions = Object.keys(answers).length;
   const completedQuestions = Object.values(answers).filter(
     (value) => value.trim() !== ''
@@ -279,22 +301,14 @@ function Scratch({ auth }) {
       setOpenCard(null);
     };
 
-    // Detecta clics fuera del contenedor
+    // Detect clicks outside the container
     document.addEventListener('click', handleClickOutside);
     return () => {
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
 
-  const [selectedQuestion, setSelectedQuestion] = useState<{
-    key: string;
-    question: string;
-    label: string;
-    example: string;
-    description: string;
-  } | null>(null);
-
-  // Inicializar con la primera pregunta por defecto
+  // Initialize with the default first question
   useEffect(() => {
     if (tabs.length > 0 && tabs[0].questions.length > 0) {
       setSelectedQuestion(tabs[0].questions[0]);

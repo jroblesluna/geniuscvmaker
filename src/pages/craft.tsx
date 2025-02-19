@@ -514,11 +514,29 @@ function Craft({ auth }) {
   }
 
   const handleSubmit = async (cv: CvCraft, index: number | null = null) => {
-    // Handle submission logic here
-    setIsProcessing(true);
-
-    console.log(cv);
+    const TOKENS_PAY = 30;
     try {
+      setIsProcessing(true);
+
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (!docSnap.exists()) {
+        toast.error('User document not found.');
+        setIsProcessing(false);
+        return;
+      }
+
+      const currentTokens = docSnap.data()?.tokens || 0;
+      const newTokens = currentTokens - TOKENS_PAY;
+
+      if (newTokens < 0) {
+        toast.error("You don't have enough tokens");
+        setIsProcessing(false);
+        return;
+      }
+
       const response = await fetch('/api/geniuscvmaker', {
         method: 'POST', //Don't get confused, this is always POST
         headers: {
@@ -545,6 +563,11 @@ function Craft({ auth }) {
       const data = await response.json();
       console.log('Success:', data);
       if (data.requestPath != undefined) {
+        await updateDoc(userDocRef, { tokens: newTokens });
+        auth.setUser((prevUser) => ({
+          ...prevUser,
+          tokens: newTokens,
+        }));
         toast.success('You created a new CV Request: ' + data.requestPath.split('/').pop());
         router.push('/cvList');
       } else {

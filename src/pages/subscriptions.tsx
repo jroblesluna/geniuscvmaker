@@ -24,13 +24,13 @@ import { goPaymentMethods } from '../utils/navigateRoutes';
 import { PaymentMethod } from '@stripe/stripe-js';
 import { getCurrencySymbol } from '../utils/others';
 import { PlanStripe } from '../interfaces/stripe';
-
+import { Timestamp } from 'firebase/firestore';
 const benefits = {
   'genius-01': {
     main_benefit: 100,
     others: [
       'Create 5 CV from Scratch, or',
-      'Craft structure of 6 CV, or',
+      'Craft structure of 3 CV, or',
       'Analyze and optimize up to 5 CV, or',
       'Spotlight up to 4 CV.',
     ],
@@ -167,7 +167,10 @@ const MySubscriptions = ({ auth }) => {
       const res = await fetch('/api/get-subscription', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscriptionId }),
+        body: JSON.stringify({
+          subscriptionId,
+          tokens_expiration_date: Timestamp.fromDate(new Date()),
+        }),
       });
 
       const data = await res.json();
@@ -262,6 +265,12 @@ const MySubscriptions = ({ auth }) => {
           subscription: data.subscriptionId,
           tokens: newTokens,
         });
+
+        auth.setUser((prevUser) => ({
+          ...prevUser,
+          subscription: data.subscriptionId,
+          tokens: newTokens,
+        }));
         toast.success(`Subscription was created: ${data.subscriptionId}`);
       } else {
         toast.error(data.merchant_message || 'Error al generar la suscripción');
@@ -325,7 +334,14 @@ const MySubscriptions = ({ auth }) => {
         await updateDoc(userDocRef, {
           subscription: data.subscriptionId,
           tokens: newTokens,
+          tokens_expiration_date: Timestamp.fromDate(new Date()),
         });
+
+        auth.setUser((prevUser) => ({
+          ...prevUser,
+          subscription: data.subscriptionId,
+          tokens: newTokens,
+        }));
         toast.success(`Subscription was Update: ${data.subscriptionId}`);
       } else {
         toast.error(data.merchant_message || 'Error al generar la suscripción');

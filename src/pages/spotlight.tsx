@@ -1,7 +1,14 @@
 import { withProtected } from '../hook/route';
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, FileCheck } from 'lucide-react';
-import { collection, doc, getDoc, getDocs, getFirestore } from '@firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  getFirestore,
+  updateDoc,
+} from '@firebase/firestore';
 import { goScratch, goCraft, goOptimize, goCVList } from '../utils/navigateRoutes';
 import { ScrappingService } from '../service/ScrappingService';
 import { capitalize, isValidURL } from '../utils/others';
@@ -25,6 +32,7 @@ function Spotlight({ auth }) {
   const [showCV, setShowCV] = useState<boolean>(false);
   const [isSmallScreen, setIsSmallScreen] = useState<boolean>(window.innerWidth < 768);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [visibleCount, setVisibleCount] = useState(2);
   const [isLoadingAnalyze, setIsLoadingAnalyze] = useState<boolean>(true);
   const [resultsAnalyze, setResultsAnalyze] = useState<string>('');
 
@@ -43,6 +51,9 @@ function Spotlight({ auth }) {
 
   const handleChange = (e) => {
     setInputValue(e.target.value);
+  };
+  const loadMore = () => {
+    setVisibleCount(visibleCount + 3);
   };
 
   const generateAnalyze = async () => {
@@ -101,6 +112,25 @@ function Spotlight({ auth }) {
       toast.error('Error: Data not found.');
     } else {
       setIsLoadingRequest(true);
+      const TOKENS_PAY = 25;
+      const firestore = getFirestore();
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const docSnap = await getDoc(userDocRef);
+
+      if (!docSnap.exists()) {
+        toast.error('User document not found.');
+        setIsLoadingRequest(false);
+        return;
+      }
+
+      const currentTokens = docSnap.data()?.tokens || 0;
+      const newTokens = currentTokens - TOKENS_PAY;
+
+      if (newTokens < 0) {
+        toast.error("You don't have enough tokens");
+        setIsLoadingRequest(false);
+        return;
+      }
       const response = await fetch('/api/geniuscvmaker', {
         method: 'POST',
         headers: {
@@ -118,6 +148,11 @@ function Spotlight({ auth }) {
       });
       const data = await response.json();
       if (data.requestPath != undefined) {
+        await updateDoc(userDocRef, { tokens: newTokens });
+        auth.setUser((prevUser) => ({
+          ...prevUser,
+          tokens: newTokens,
+        }));
         toast.success('You created a new CV Request: ' + data.requestPath.split('/').pop());
       } else {
         toast.error('Error creating CV request. Please contact Support.');
@@ -150,48 +185,6 @@ function Spotlight({ auth }) {
             // geniusBody: cvRequestData.geniusBody,
             status: cvRequestData.status,
           });
-          // fetchedCVRequests.push({
-          //   id: doc.id + '2',
-          //   createdAt: cvRequestData.createdAt,
-          //   geniusApp: cvRequestData.geniusApp,
-
-          //   status: cvRequestData.status,
-          // });
-          // fetchedCVRequests.push({
-          //   id: doc.id + '3',
-          //   createdAt: cvRequestData.createdAt,
-          //   geniusApp: cvRequestData.geniusApp,
-
-          //   status: cvRequestData.status,
-          // });
-          // fetchedCVRequests.push({
-          //   id: doc.id + '4',
-          //   createdAt: cvRequestData.createdAt,
-          //   geniusApp: cvRequestData.geniusApp,
-
-          //   status: cvRequestData.status,
-          // });
-          // fetchedCVRequests.push({
-          //   id: doc.id + '5',
-          //   createdAt: cvRequestData.createdAt,
-          //   geniusApp: cvRequestData.geniusApp,
-
-          //   status: cvRequestData.status,
-          // });
-          // fetchedCVRequests.push({
-          //   id: doc.id + '6',
-          //   createdAt: cvRequestData.createdAt,
-          //   geniusApp: cvRequestData.geniusApp,
-
-          //   status: cvRequestData.status,
-          // });
-          // fetchedCVRequests.push({
-          //   id: doc.id + '7',
-          //   createdAt: cvRequestData.createdAt,
-          //   geniusApp: cvRequestData.geniusApp,
-
-          //   status: cvRequestData.status,
-          // });
         });
         setCVRequests(fetchedCVRequests);
       } catch (error) {
@@ -370,6 +363,7 @@ function Spotlight({ auth }) {
                     {cvRequests
                       .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
                       .filter((cvRequest) => cvRequest.status === 'finalized')
+                      .slice(0, visibleCount)
                       .map((cvRequest) => (
                         <div
                           key={cvRequest.id}
@@ -406,6 +400,21 @@ function Spotlight({ auth }) {
                           </div>
                         </div>
                       ))}
+
+                    {cvRequests &&
+                      visibleCount < cvRequests.length &&
+                      cvRequests.length > 2 && (
+                        <div className={'  gap-2 justify-center items-center flex h-40 p-3 '}>
+                          <div className=" mt-1.5">
+                            <button
+                              onClick={loadMore}
+                              className="w-fit  bg-[#FF4F22] hover:opacity-85 text-white text-sm font-semibold py-2 px-10  rounded-sm"
+                            >
+                              + load
+                            </button>
+                          </div>
+                        </div>
+                      )}
                   </div>
                 )}
                 <button
@@ -446,7 +455,6 @@ function Spotlight({ auth }) {
                             </div>
                           </div>
                           <div className="overflow-auto max-h-[80vh]">
-                            <div dangerouslySetInnerHTML={{ __html: selectedCV }} />
                             <div dangerouslySetInnerHTML={{ __html: selectedCV }} />
                           </div>
 

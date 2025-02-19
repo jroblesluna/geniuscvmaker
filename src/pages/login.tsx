@@ -10,6 +10,7 @@ import {
   updateDoc,
   DocumentReference,
   serverTimestamp,
+  Timestamp,
 } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import toast from 'react-hot-toast';
@@ -217,8 +218,10 @@ function Login({ auth }) {
                   about: '',
                   favoriteCard: '',
                   createdAt: serverTimestamp(),
+                  subscription: '',
+                  tokens_expiration_date: Timestamp.fromDate(new Date()),
                   stripeCustomerId: costumerId || '',
-                  tokens: 0,
+                  tokens: 100, // switch to free tokens
                 });
                 console.log('Usuario Creado');
                 setIsNewUser(true);

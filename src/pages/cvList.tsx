@@ -93,10 +93,8 @@ function cvList({ auth }) {
       fetch('/assets/html/printTemplate.html')
         .then((response) => response.text())
         .then((data) => {
-          const modifiedHTML = data.replace(
-            '<div id="content"></div>',
-            `<div id="content">${selectedCV || ''}</div>`
-          );
+          const modifiedHTML = `<div id="content">${selectedCV || ''}</div>`;
+
           printWindow.document.write(modifiedHTML);
           printWindow.document.close();
 
@@ -242,7 +240,6 @@ function cvList({ auth }) {
                             </div>
                           </div>
                           <div className="overflow-auto max-h-[80vh]">
-                            <div dangerouslySetInnerHTML={{ __html: selectedCV }} />
                             <div dangerouslySetInnerHTML={{ __html: selectedCV }} />
                           </div>
                           <div className="flex flex-row gap-5 w-full">
