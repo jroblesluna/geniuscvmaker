@@ -41,7 +41,6 @@ firebase-adminsdk-*.json
 # Firebase Functions
 functions/node_modules
 functions/lib
-functions/*.js
 functions/*.js.map
 functions/.runtimeconfig.json
 

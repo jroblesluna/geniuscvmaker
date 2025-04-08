@@ -14,6 +14,7 @@ import { ScrappingService } from '../service/ScrappingService';
 import { capitalize, isValidURL } from '../utils/others';
 import { CVRequest } from '../interfaces/geniuscvmaker';
 import toast from 'react-hot-toast';
+import FilterDropdown from '../components/filter-dropdown';
 
 function Spotlight({ auth }) {
   const [inputValue, setInputValue] = useState('');
@@ -23,6 +24,7 @@ function Spotlight({ auth }) {
   const [selectedCV, setSelectedCV] = useState<string | null>(null);
   const [isLoadingRequest, setIsLoadingRequest] = useState<boolean>(false);
   const [selectedFinalCV, setSelectedFinalCV] = useState<string>('');
+  const debug = false;
   // Navigate between pages
   const [selectedStep, setSelectedStep] = useState<'choice' | 'requirements' | 'analysis'>(
     'choice'
@@ -35,13 +37,36 @@ function Spotlight({ auth }) {
   const [visibleCount, setVisibleCount] = useState(2);
   const [isLoadingAnalyze, setIsLoadingAnalyze] = useState<boolean>(true);
   const [resultsAnalyze, setResultsAnalyze] = useState<string>('');
+  const [selectedApps, setSelectedApps] = useState<string[]>([
+    'Craft',
+    'Scratch',
+    'Optimize',
+    'Spotlight',
+  ]);
 
-  const handleScrape = async (url: string) => {
+  // const handleScrape = async (url: string) => {
+  //   setResults('');
+  //   try {
+  //     const response = await ScrappingService(url);
+
+  //     if (response) {
+  //       setResults('```START OF REQUERIMENTS \n' + response + ' END OF REQUERIMENTS```\n');
+  //     }
+  //   } catch (error) {
+  //     toast.error('Failed to fetch scraping data:');
+  //     console.error('Failed to fetch scraping data:', error);
+  //   }
+  // };
+
+  const handleScrape = async (url: string): Promise<void> => {
+    setResults('');
     try {
-      const response = await ScrappingService(url);
+      const response = await fetch(`/api/scraping?url=${encodeURIComponent(url)}`);
 
-      if (response) {
-        setResults('```START OF REQUERIMENTS \n' + response + 'END OF REQUERIMENTS```\n');
+      const data = await response.json();
+      console.log(data);
+      if (data.content) {
+        setResults('```START OF REQUERIMENTS \n' + data.content + ' END OF REQUERIMENTS```\n');
       }
     } catch (error) {
       toast.error('Failed to fetch scraping data:');
@@ -65,7 +90,7 @@ function Spotlight({ auth }) {
       if (isValidURL(inputValue)) {
         handleScrape(inputValue);
       } else {
-        setResults('```START OF REQUERIMENTS \n' + inputValue + 'END OF REQUERIMENTS```\n');
+        setResults('```START OF REQUERIMENTS \n' + inputValue + ' END OF REQUERIMENTS```\n');
       }
     }
 
@@ -85,7 +110,7 @@ function Spotlight({ auth }) {
       'Step 4: Adapt the response to be able to display in a <div>, consider bold, titles, subtitles \n';
 
     try {
-      const response = await fetch('http://localhost:3000/api/generate-analysis', {
+      const response = await fetch('/api/generate-analysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -248,14 +273,11 @@ function Spotlight({ auth }) {
   };
 
   const goNextSteps = (): void => {
-    if (
-      ((choiceCV && choiceCV.length === 0) || choiceCV == null) &&
-      selectedStep == 'choice'
-    ) {
+    if (selectedFinalCV.length == 0 || choiceCV == null) {
       return;
     }
 
-    if ((inputValue.length == 0 && selectedStep == 'requirements') || results.length === 0) {
+    if ((inputValue.length == 0 || results.length === 0) && selectedStep == 'requirements') {
       return;
     }
 
@@ -267,7 +289,7 @@ function Spotlight({ auth }) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-4">
+    <div className="container mx-auto px-4 pt-3">
       <div className=" flex items-center justify-center">
         <div className="text-4xl font-bold tracking-tigh mt-1">Spotlight</div>
       </div>
@@ -285,16 +307,18 @@ function Spotlight({ auth }) {
             >
               <ChevronLeft className="h-5 w-5 " />
             </button>
-            <p className="text-lg text-gray-500  ">Create your perfect CV for your new job</p>
+            <p className=" text-[16px] xl:text-lg text-gray-500  ">
+              Create your perfect CV for your new job
+            </p>
             <button
               className={
                 'rounded-full shadow-lg pointer-events-auto transition-transform hover:scale-105 hover:bg-gray-400 ' +
-                ((choiceCV && choiceCV.length === 0) || choiceCV == null
-                  ? '  cursor-default pointer-events-none opacity-0'
+                (selectedFinalCV.length == 0 || choiceCV == null
+                  ? '  cursor-default pointer-events-none opacity-0 '
                   : ' ') +
                 (selectedStep == 'analysis'
                   ? ' cursor-default pointer-events-none opacity-0'
-                  : '')
+                  : ' ')
               }
               onClick={goNextSteps}
             >
@@ -303,11 +327,17 @@ function Spotlight({ auth }) {
           </div>
 
           {selectedStep == 'choice' && (
-            <div className={`flex w-full  mx-auto  flex-col gap-4  `}>
+            <div className={`flex w-full  mx-auto  flex-col gap-3  `}>
               {!isLoading && cvRequests.length !== 0 && (
-                <p className="font-semibold">
-                  1. Choose one of your CVs as a reference for your application
-                </p>
+                <div className="flex lg:flex-row  flex-col items-end  lg:items-start gap-1 w-full justify-between h-fit ">
+                  <p className="font-semibold  h-fit  w-full">
+                    1. Choose one of your CVs as a reference for your application
+                  </p>
+                  <FilterDropdown
+                    selectedApps={selectedApps}
+                    onSelectionChange={setSelectedApps}
+                  />
+                </div>
               )}
 
               <div className={`w-full  flex flex-col`}>
@@ -359,63 +389,87 @@ function Spotlight({ auth }) {
                     </div>
                   </div>
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-[53vh]  min-h-[35vh] ">
-                    {cvRequests
-                      .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
-                      .filter((cvRequest) => cvRequest.status === 'finalized')
-                      .slice(0, visibleCount)
-                      .map((cvRequest) => (
-                        <div
-                          key={cvRequest.id}
-                          className={
-                            'rounded-md shadow-md  border gap-2  duration-300 hover:shadow-lg p-3 h-fit ' +
-                            (choiceCV == cvRequest.id ? 'bg-[#fffbf0]' : '')
-                          }
-                        >
-                          <div className="mb-4 flex justify-center">
-                            <div className="rounded-full bg-black/10 p-3 group-hover:bg-primary/20 transition-colors">
-                              <FileCheck className="h-6 w-6 text-black" />
-                            </div>
-                          </div>
-                          <div className={'flex flex-col w-full justify-center'}>
-                            <div className="space-y-2 text-center">
-                              <div className="text-sm text-gray-600">
-                                <span className="font-semibold">Date:</span>{' '}
-                                {cvRequest.createdAt.toDate().toLocaleString()}
-                              </div>
-                              <div className="text-sm text-gray-600">
-                                <span className="font-semibold">App:</span>
-                                {' ' + capitalize(cvRequest.geniusApp)}
-                              </div>
-                            </div>
-
-                            <div className=" mt-1.5">
-                              <button
-                                onClick={() => handleViewCV(cvRequest.id)}
-                                className="w-full  bg-[#FF4F22] hover:opacity-85 text-white text-sm font-semibold py-2 px-2  rounded-xl"
+                  <>
+                    {' '}
+                    {cvRequests.filter((cvRequest) =>
+                      selectedApps.includes(capitalize(cvRequest.geniusApp))
+                    ).length === 0 ? (
+                      <div className="text-center flex flex-col items-center h-[50vh] justify-center  mx-auto  ">
+                        <img
+                          src="https://static.thenounproject.com/png/2902077-200.png"
+                          width={100}
+                        />
+                        <p className="mt-2">There are no CV </p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 overflow-y-auto max-h-[53vh]  min-h-[35vh] ">
+                          {cvRequests
+                            .filter((cvRequest) =>
+                              selectedApps.includes(capitalize(cvRequest.geniusApp))
+                            )
+                            .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
+                            .filter((cvRequest) => cvRequest.status === 'finalized')
+                            .slice(0, visibleCount)
+                            .map((cvRequest) => (
+                              <div
+                                key={cvRequest.id}
+                                className={
+                                  'rounded-md shadow-md  border gap-2  duration-300 hover:shadow-lg p-3 h-fit ' +
+                                  (choiceCV == cvRequest.id ? 'bg-[#fffbf0]' : '')
+                                }
                               >
-                                View CV
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                                <div className="mb-4 flex justify-center">
+                                  <div className="rounded-full bg-black/10 p-3 group-hover:bg-primary/20 transition-colors">
+                                    <FileCheck className="h-6 w-6 text-black" />
+                                  </div>
+                                </div>
+                                <div className={'flex flex-col w-full justify-center'}>
+                                  <div className="space-y-2 text-center">
+                                    <div className="text-sm text-gray-600">
+                                      <span className="font-semibold">Date:</span>{' '}
+                                      {cvRequest.createdAt.toDate().toLocaleString()}
+                                    </div>
+                                    <div className="text-sm text-gray-600">
+                                      <span className="font-semibold">App:</span>
+                                      {' ' + capitalize(cvRequest.geniusApp)}
+                                    </div>
+                                  </div>
 
-                    {cvRequests &&
-                      visibleCount < cvRequests.length &&
-                      cvRequests.length > 2 && (
-                        <div className={'  gap-2 justify-center items-center flex h-40 p-3 '}>
-                          <div className=" mt-1.5">
-                            <button
-                              onClick={loadMore}
-                              className="w-fit  bg-[#FF4F22] hover:opacity-85 text-white text-sm font-semibold py-2 px-10  rounded-sm"
-                            >
-                              + load
-                            </button>
-                          </div>
+                                  <div className=" mt-1.5">
+                                    <button
+                                      onClick={() => handleViewCV(cvRequest.id)}
+                                      className="w-full  bg-[#FF4F22] hover:opacity-85 text-white text-sm font-semibold py-2 px-2  rounded-xl"
+                                    >
+                                      View CV
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+
+                          {cvRequests &&
+                            visibleCount < cvRequests.length &&
+                            cvRequests.length > 2 && (
+                              <div
+                                className={
+                                  '  gap-2 justify-center items-center flex h-40 p-3 '
+                                }
+                              >
+                                <div className=" mt-1.5">
+                                  <button
+                                    onClick={loadMore}
+                                    className="w-fit  bg-[#FF4F22] hover:opacity-85 text-white text-sm font-semibold py-2 px-10  rounded-sm"
+                                  >
+                                    + load
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                         </div>
-                      )}
-                  </div>
+                      </>
+                    )}
+                  </>
                 )}
                 <button
                   className={
@@ -539,7 +593,7 @@ function Spotlight({ auth }) {
         </div>
       </div>
       {/*Debug scrapping */}
-      {results.length > 0 && (
+      {results.length > 0 && debug && (
         <div className="p-4">
           <div>
             <h2 className="font-semibold">Resultados Scraping:</h2>

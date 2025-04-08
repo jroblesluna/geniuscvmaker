@@ -489,7 +489,7 @@ function Scratch({ auth }) {
               <div className=" w-[100%]  lg:w-[65%] border p-4 items-center md:h-[400px] h-[550px]  ">
                 {selectedQuestion ? (
                   <div className="w-[90%] mx-auto  flex flex-col justify-between h-full ">
-                    <h2 className="text-2xl font-bold text-gray-800 topic-title-orange text-start text-md ">
+                    <h2 className="text-2xl font-bold  text-gray-500 text-start text-md ">
                       {selectedQuestion.question}
                     </h2>
                     {/* <p className="text-gray-600 mt-2">{selectedQuestion.description}</p> */}

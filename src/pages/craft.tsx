@@ -755,7 +755,7 @@ function Craft({ auth }) {
         >
           <ModalContent>
             <ModalHeader className="flex flex-row items-center">
-              <span className="text-xl font-bold text-left w-fit min-w-[150px]  line-clamp-1">
+              <span className=" text-xs xl:text-xl font-bold text-left w-fit min-w-[150px]  line-clamp-1">
                 {isEditing ? 'Edit CV' : 'Create New CV'}
               </span>
               <span className="text-sm font-light text-right w-full">
