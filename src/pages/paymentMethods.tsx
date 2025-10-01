@@ -11,11 +11,12 @@ import { withProtected } from '../hook/route';
 import { toast } from 'react-hot-toast';
 import SvgCancel from '../components/svgCancel';
 import { Contact, CreditCard } from '../interfaces/culqi';
-import { PaymentMethod } from '../interfaces/stripe';
+import { PaymentMethod, Card } from '../interfaces/stripe';
 import { loadStripe, StripeElementLocale } from '@stripe/stripe-js';
 import { goSubscriptions } from '../utils/navigateRoutes';
 import { capitalize, validateEmail } from '../utils/others';
 import { CardElement, Elements, useElements, useStripe } from '@stripe/react-stripe-js';
+import { CvCraft } from '../interfaces/geniuscvmaker';
 
 const emptyContact = {
   name: '',
@@ -48,9 +49,16 @@ function PaymentMethods({ auth }) {
   const [customerId, setCustomerId] = useState('');
   const [cards, setCards] = useState<PaymentMethod[]>([]);
   const [clientSecret, setClientSecret] = useState('');
-
   const options = {
     locale: 'en' as StripeElementLocale,
+    appearance: {
+      rules: {
+        '.Input--cvc': {
+          '-webkit-text-security': 'disc',
+          'text-security': 'disc',
+        },
+      },
+    },
   };
   useEffect(() => {
     callFirstime();
@@ -101,10 +109,28 @@ function PaymentMethods({ auth }) {
     setContact({ ...contact, [e.target.name]: e.target.value });
   };
 
-  const handleAddCard = () => {
-    contact.name = user.displayName.toUpperCase();
-    contact.email = user.email;
+  const handleAddCard = async () => {
+    // Asigna nombre y email del usuario
+    const cardName = user.displayName.toUpperCase();
+    const cardEmail = user.email;
 
+    // Crear un nuevo SetupIntent al abrir el modal
+    try {
+      const res = await fetch('/api/create-setup-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerId, email: cardEmail, name: cardName }),
+      });
+
+      const data = await res.json();
+      setClientSecret(data.setupIntent); // clientSecret fresco
+    } catch (error) {
+      console.error('Error creating SetupIntent:', error);
+      toast.error('Failed to initialize payment setup');
+      return;
+    }
+
+    setContact({ ...emptyContact, name: cardName, email: cardEmail });
     setShowModal(true);
   };
 
@@ -113,45 +139,32 @@ function PaymentMethods({ auth }) {
     setShowModal(false);
   };
 
-  function SetupForm() {
+  function SetupForm({
+    clientSecret,
+    onClose,
+  }: {
+    clientSecret: string;
+    onClose: () => void;
+  }) {
     const stripe = useStripe();
     const elements = useElements();
     const [cardComplete, setCardComplete] = useState(false);
-
-    useEffect(() => {
-      if (clientSecret === '' && customerId !== '') {
-        fetch('/api/create-setup-intent', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            customerId: customerId,
-            email: '',
-            name: '',
-          }),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            setClientSecret(data.setupIntent);
-            setCustomerId(data.customerId);
-          })
-          .catch((error) => console.error('Error:', error));
-      }
-    }, [customerId]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      if (!stripe || !elements || !clientSecret) {
+        toast.error('Missing payment information');
+        return;
+      }
 
       if (!cardComplete) {
         toast.error('Please enter your card details.');
         return;
       }
 
-      if (!stripe || !elements || !clientSecret) {
-        toast.error('Falta datos');
-        return;
-      }
+      if (isSubmitting) return;
+      setIsSubmitting(true);
 
       const cardElement = elements.getElement(CardElement);
 
@@ -159,37 +172,39 @@ function PaymentMethods({ auth }) {
         payment_method: {
           card: cardElement!,
           billing_details: {
-            name: name,
-            email: email,
+            name: contact.name,
+            email: contact.email,
           },
         },
       });
 
       if (error) {
         toast.error('Error saving card');
-        console.log('Error saving card', error.message);
+        console.log('Error saving card', error);
+        // console.log('Error type:', error.type);
+        // console.log('Error code:', error.code);
       } else {
         toast.success('Card saved successfully');
         console.log('Card saved successfully:', setupIntent);
         callPaymentMethods(customerId);
-        handleModalClose();
+        onClose();
       }
+
+      setIsSubmitting(false);
     };
 
     return (
       <form onSubmit={handleSubmit} className="min-h-[20vh] flex flex-col gap-5">
         <CardElement
           className="bg-[#E4E4E7] justify-center  h-10 p-2 flex flex-col border"
-          onChange={(event) => {
-            setCardComplete(event.complete);
-          }}
+          onChange={(event) => setCardComplete(event.complete)}
         />
         <button
           type="submit"
-          disabled={!stripe}
+          disabled={!stripe || isSubmitting}
           className="w-full bg-blue-700 text-white hover:opacity-80 p-2 font-bold rounded-md"
         >
-          Add Card
+          {isSubmitting ? 'Saving...' : 'Add Card'}
         </button>
       </form>
     );
@@ -330,7 +345,7 @@ function PaymentMethods({ auth }) {
                 key="cardholderName"
                 label="Card Holder Name"
                 name="name"
-                value={name}
+                value={contact.name}
                 variant="flat"
                 radius="none"
                 size="sm"
@@ -343,7 +358,7 @@ function PaymentMethods({ auth }) {
                 key="cardholderEmail"
                 label="Card Holder Email"
                 name="email"
-                value={email}
+                value={contact.email}
                 variant="flat"
                 radius="none"
                 size="sm"
@@ -352,9 +367,11 @@ function PaymentMethods({ auth }) {
                 errorMessage={errors.email}
               />
 
-              <Elements stripe={stripePromise} options={options}>
-                <SetupForm />
-              </Elements>
+              {clientSecret && (
+                <Elements stripe={stripePromise} options={options}>
+                  <SetupForm clientSecret={clientSecret} onClose={handleModalClose} />
+                </Elements>
+              )}
             </div>
           </div>
         </ModalContent>
